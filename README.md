@@ -31,6 +31,28 @@ difficulty setting, and the end-of-turn account toggle.
 
 Each tab shows one dismissible line of guidance the first time it is opened.
 
+## Three places to begin
+
+The game offers three worlds, chosen at character creation. Each has its own
+roads, its own home market, its own buildings and its own rivals.
+
+| | | |
+|---|---|---|
+| **Samarkand** | The crossroads | Transoxiana, where every road meets. Thirteen roads, east and west, and everybody else's caravan on them too. |
+| **Trebizond** | The Black Sea | Where the Silk Road ends and Italy begins. Alum, wine and Frankish woollens on the quay, Genoese money waiting, and the whole trade of Asia coming down the Zigana pass. |
+| **Tabriz** | Persia | The hinge of the world under Mongol law — the Gulf south, the Black Sea west, the road east. Everything passes through and everything is taxed on the way. |
+
+Sixteen goods, but a home bazaar stocks only what its own country made: paper
+and silk in Samarkand, alum and wine and woollens in Trebizond, saffron and
+dates in Tabriz. Anything else has to be carried in. Six of the goods are
+regional — furs down the Rus' rivers, Anatolian alum, Trapezuntine wine,
+Frankish woollens, Basra dates, Khorasan saffron.
+
+The engine is start-agnostic: route ids are destination cities, so the same
+marriage gifts, origin traits and property records work from any home. The
+winning condition generalises too — a caravan home from **the far end of your
+own road**, whichever road that is.
+
 ## Building a merchant
 
 The game opens on a point-buy character sheet:
@@ -240,6 +262,23 @@ or an LLM in the loop. This build takes the first, at scale:
 
 That is not a language model, but it gives the game a memory: the rival only
 appears once you are worth undercutting, and how you finish him is your choice.
+
+## What a caravan brings home
+
+A market's own produce is what it sells cheap — so it is also what it will not
+pay much for. That rule is applied to every city at load, which makes the whole
+map directional: you carry a market what it lacks, and bring home what it has
+too much of.
+
+(This was a real bug, found late: all twenty-one sourced cities both sold their
+produce cheap *and* paid a premium for it — up to 3.8x arbitrage inside a single
+market. Bukhara sourced the paper its neighbour Samarkand sells it; Merv sourced
+the tea it was listed as wanting. Bukhara now sources furs and Merv saffron, and
+the rule keeps the rest honest.)
+
+The caravan planner shows what the destination is cheapest in, what a load of it
+costs there, and how many loads the takings would buy — and you set how much of
+those takings to spend, from nothing to three quarters.
 
 ## Reading the market
 

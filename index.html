@@ -405,15 +405,22 @@ const GOODS = {
   glass:     {name:"Syrian glassware",short:"Glass",     base:26, g:"Gl", supply:1.00},
   tea:       {name:"Brick tea",       short:"Tea",       base:22, g:"Te", supply:1.12},
   porcelain: {name:"White porcelain", short:"Porcelain", base:46, g:"Po", supply:1.18},
-  horses:    {name:"Ferghana horses", short:"Horses",    base:66, g:"Ho", supply:0.88}
+  horses:    {name:"Ferghana horses", short:"Horses",    base:66, g:"Ho", supply:0.88},
+  /* regional. A start's home bazaar stocks only what its own country made. */
+  furs:      {name:"Rus' sable & marten",short:"Furs",    base:52, g:"Fu", supply:1.05},
+  alum:      {name:"Anatolian alum",     short:"Alum",    base:28, g:"Al", supply:0.85},
+  wine:      {name:"Trapezuntine wine",  short:"Wine",    base:24, g:"Wi", supply:0.90},
+  cloth:     {name:"Frankish woollens",  short:"Woollens",base:38, g:"Wo", supply:1.00},
+  dates:     {name:"Basra dates",        short:"Dates",   base:18, g:"Da", supply:0.95},
+  saffron:   {name:"Khorasan saffron",   short:"Saffron", base:60, g:"Sa", supply:1.10}
 };
 const GOOD_IDS = Object.keys(GOODS);
 
 /* ---------------------------------------------------------- cities --- */
 const CITIES = {
   samarkand:{name:"Samarkand", demand:{}},
-  bukhara:  {name:"Bukhara",   demand:{glass:1.35,paper:1.30,silk:1.12,spices:1.15,def:1.14}, source:{good:"paper",  mult:0.62}},
-  merv:     {name:"Merv",      demand:{silk:1.42,tea:1.34,porcelain:1.28,def:1.20}, source:{good:"tea",       mult:0.66}},
+  bukhara:  {name:"Bukhara",   demand:{glass:1.35,paper:1.30,silk:1.12,spices:1.15,def:1.14}, source:{good:"furs",   mult:0.64}},
+  merv:     {name:"Merv",      demand:{silk:1.42,tea:1.34,porcelain:1.28,def:1.20}, source:{good:"saffron",   mult:0.62}},
   balkh:    {name:"Balkh",     demand:{incense:1.46,glass:1.34,horses:1.30,def:1.22}, source:{good:"lapis",   mult:0.70}},
   herat:    {name:"Herat",     demand:{lapis:1.50,porcelain:1.40,silk:1.30,def:1.28}, source:{good:"spices",  mult:0.74}},
   urgench:  {name:"Urgench",   demand:{glass:1.44,spices:1.38,porcelain:1.34,def:1.26}, source:{good:"horses",mult:0.72}},
@@ -421,11 +428,28 @@ const CITIES = {
   khotan:   {name:"Khotan",    demand:{tea:1.74,spices:1.62,paper:1.58,def:1.44}, source:{good:"jade",        mult:0.52}},
   turfan:   {name:"Turfan",    demand:{lapis:1.80,glass:1.72,incense:1.60,def:1.50}, source:{good:"silk",     mult:0.68}},
   tabriz:   {name:"Tabriz",    demand:{silk:2.05,porcelain:1.92,jade:1.84,tea:1.60,def:1.58}, source:{good:"glass",mult:0.60}},
-  dunhuang: {name:"Dunhuang",  demand:{spices:1.94,lapis:1.88,horses:1.80,incense:1.76,def:1.62}, source:{good:"tea",mult:0.58}},
-  hormuz:   {name:"Hormuz",    demand:{silk:1.96,porcelain:2.02,jade:1.70,def:1.62}, source:{good:"incense",  mult:0.56}},
+  dunhuang: {name:"Dunhuang",  demand:{spices:1.94,lapis:1.88,horses:1.80,incense:1.76,furs:2.00,def:1.62}, source:{good:"tea",mult:0.58}},
+  hormuz:   {name:"Hormuz",    demand:{silk:1.96,porcelain:2.02,jade:1.70,furs:1.90,def:1.62}, source:{good:"dates", mult:0.44}},
   multan:   {name:"Multan",    demand:{silk:1.88,jade:1.74,horses:1.92,def:1.60}, source:{good:"spices",      mult:0.48}},
-  changan:  {name:"Chang'an",  demand:{incense:2.42,lapis:2.30,glass:2.22,horses:2.20,def:1.92}, source:{good:"porcelain",mult:0.50}}
+  changan:  {name:"Chang'an",  demand:{incense:2.42,lapis:2.30,glass:2.22,horses:2.20,furs:2.35,saffron:2.10,def:1.92}, source:{good:"porcelain",mult:0.50}},
+
+  /* the western world, for the Black Sea and Persian starts */
+  trebizond:{name:"Trebizond", demand:{silk:1.58,spices:1.52,furs:1.60,saffron:1.50,def:1.38}, source:{good:"alum",  mult:0.60}},
+  sinope:   {name:"Sinope",    demand:{cloth:1.40,spices:1.44,silk:1.36,def:1.26}, source:{good:"alum",              mult:0.66}},
+  sivas:    {name:"Sivas",     demand:{cloth:1.50,glass:1.42,spices:1.46,silk:1.44,def:1.30}, source:{good:"alum",   mult:0.56}},
+  soldaia:  {name:"Soldaia",   demand:{wine:1.62,cloth:1.60,glass:1.46,spices:1.50,def:1.34}, source:{good:"furs",   mult:0.56}},
+  constantinople:{name:"Constantinople", demand:{furs:2.15,spices:1.98,silk:1.88,alum:1.72,saffron:1.80,jade:1.70,def:1.62},
+                  source:{good:"cloth", mult:0.54}},
+  tbilisi:  {name:"Tbilisi",   demand:{cloth:1.46,spices:1.42,porcelain:1.40,def:1.30}, source:{good:"wine",         mult:0.60}},
+  aleppo:   {name:"Aleppo",    demand:{furs:1.76,silk:1.52,jade:1.50,porcelain:1.48,def:1.40}, source:{good:"glass", mult:0.56}},
+  baghdad:  {name:"Baghdad",   demand:{furs:1.84,silk:1.64,porcelain:1.60,alum:1.44,def:1.46}, source:{good:"dates", mult:0.48}}
 };
+/* A market's own produce is what it sells cheap, so that is also what it
+   will not pay much for. Applied once, this keeps every city coherent and
+   makes the whole map directional. */
+Object.values(CITIES).forEach(c => {
+  if(c.source) c.demand[c.source.good] = c.source.mult;
+});
 const cityPrice = (cityId, goodId) => {
   const c = CITIES[cityId], d = c.demand[goodId] || c.demand.def || 1;
   return Math.round(GOODS[goodId].base * d);
@@ -434,7 +458,7 @@ const cityPrice = (cityId, goodId) => {
 /* ---------------------------------------------------------- routes ---
    terrain decides which of your fleet can go, and which of the trip
    events can happen on the way.                                       */
-const ROUTES = [
+const ROUTES_SAMARKAND = [
   {id:"bukhara", to:"bukhara", name:"The Bukhara Run",   turns:1, risk:0.07, terrain:"road", open:true,
    note:"A week of good road along the Zarafshan."},
   {id:"merv",    to:"merv",    name:"The Merv Road",     turns:2, risk:0.11, terrain:"road", cost:70,  rep:6,
@@ -462,6 +486,189 @@ const ROUTES = [
   {id:"changan", to:"changan", name:"The Long Road",     turns:12,risk:0.37, terrain:"desert", cost:900, rep:47, needs:"guide",
    note:"All the way east. Men leave as sons and come back as fathers."}
 ];
+
+/* ---------------------------------------------------------------------
+   THE BLACK SEA — Trebizond, where the Silk Road ends and Italy begins.
+   Greek city, Genoese and Venetian factors on the quay, and the whole
+   trade of Asia coming down over the Zigana pass to be shipped west.
+   --------------------------------------------------------------------- */
+const ROUTES_TREBIZOND = [
+  {id:"sinope",  to:"sinope",  name:"The Coast Road",      turns:1, risk:0.08, terrain:"sea", open:true,
+   note:"Two days west along the Pontic shore, with the mountains on your left the whole way."},
+  {id:"sivas",   to:"sivas",   name:"The Anatolian Road",  turns:2, risk:0.14, terrain:"road", cost:80,  rep:6,
+   note:"Inland to the Seljuk cities and the alum pits that dye half of Italy."},
+  {id:"tbilisi", to:"tbilisi", name:"Over the Zigana",     turns:2, risk:0.17, terrain:"mountain", cost:110, rep:9,
+   note:"Up through the pass into the Georgian kingdom. Steep, wet, and worth it."},
+  {id:"soldaia", to:"soldaia", name:"Across the Black Sea",turns:3, risk:0.18, terrain:"sea", cost:160, rep:12, needs:"captain",
+   note:"North to the Crimean ports, where the Rus' furs come down the rivers each spring."},
+  {id:"constantinople", to:"constantinople", name:"To the Queen of Cities", turns:4, risk:0.17, terrain:"sea", cost:220, rep:16, needs:"captain",
+   note:"Four days' sail to the richest market in Christendom, where Genoese and Venetians bid against each other."},
+  {id:"tabriz",  to:"tabriz",  name:"The Ilkhan's Road",   turns:5, risk:0.25, terrain:"mountain", cost:280, rep:20, needs:"guide",
+   note:"Erzurum, the Armenian highlands, and down into Persia. Every eastern good comes up this road."},
+  {id:"aleppo",  to:"aleppo",  name:"The Syrian Road",     turns:6, risk:0.27, terrain:"road", cost:340, rep:24,
+   note:"South through Anatolia to the Aleppo caravanserais and the Mediterranean beyond."},
+  {id:"baghdad", to:"baghdad", name:"Down the Tigris",     turns:7, risk:0.29, terrain:"road", cost:420, rep:28,
+   note:"The old capital, sacked in no living memory and still the richest market this side of India."},
+  {id:"herat",   to:"herat",   name:"Into Khorasan",       turns:9, risk:0.31, terrain:"desert", cost:520, rep:32, needs:"guide",
+   note:"Across Persia to the gardens of Herat, where the silk is spun before it is ever sold."},
+  {id:"hormuz",  to:"hormuz",  name:"To the Gulf",         turns:11,risk:0.33, terrain:"sea", cost:600, rep:36, needs:"captain",
+   note:"Overland to Baghdad and down the river to the Gulf, where the Indies fleets come in."},
+  {id:"samarkand", to:"samarkand", name:"The Long Way East", turns:10, risk:0.35, terrain:"desert", cost:660, rep:40, needs:"guide",
+   note:"Across Persia and over the Oxus to Transoxiana, where other men's roads begin."},
+  {id:"kashgar", to:"kashgar", name:"The Road Without End", turns:15, risk:0.41, terrain:"mountain", cost:980, rep:48, needs:"guide",
+   note:"Beyond Samarkand and over the roof of the world. Men leave as sons and come back as fathers."}
+];
+
+/* ---------------------------------------------------------------------
+   PERSIA — Tabriz under the Mongols, the hinge between the Gulf, the
+   Black Sea and the road east. Everything passes through and everything
+   is taxed on the way.
+   --------------------------------------------------------------------- */
+const ROUTES_TABRIZ = [
+  {id:"baghdad", to:"baghdad", name:"Down to Baghdad",     turns:2, risk:0.10, terrain:"road", open:true,
+   note:"South along the old post road to the city that was the centre of the world."},
+  {id:"tbilisi", to:"tbilisi", name:"The Georgian Road",   turns:2, risk:0.15, terrain:"mountain", cost:90,  rep:6,
+   note:"North through the Araxes valley into the Caucasus."},
+  {id:"aleppo",  to:"aleppo",  name:"The Aleppo Road",     turns:3, risk:0.18, terrain:"road", cost:130, rep:10,
+   note:"West to Syria and the Mediterranean brokers who never come further east than this."},
+  {id:"herat",   to:"herat",   name:"The Khorasan Road",   turns:4, risk:0.20, terrain:"road", cost:190, rep:13,
+   note:"East along the old Silk Road proper, through Nishapur to the gardens of Herat."},
+  {id:"sivas",   to:"sivas",   name:"Into Anatolia",       turns:4, risk:0.21, terrain:"road", cost:220, rep:16,
+   note:"Through Erzurum into Seljuk country, where the alum comes from."},
+  {id:"trebizond", to:"trebizond", name:"To the Black Sea",turns:4, risk:0.23, terrain:"mountain", cost:250, rep:19,
+   note:"Over the Zigana to the Greek port, and the Italian ships that wait there."},
+  {id:"hormuz",  to:"hormuz",  name:"Down to the Gulf",    turns:5, risk:0.25, terrain:"desert", cost:300, rep:23, needs:"captain",
+   note:"Across the Persian plateau to the hot shore, and a hold in the monsoon fleet."},
+  {id:"samarkand", to:"samarkand", name:"Across the Oxus", turns:7, risk:0.28, terrain:"desert", cost:400, rep:27, needs:"guide",
+   note:"Over the great river into Transoxiana, where the paper comes from."},
+  {id:"constantinople", to:"constantinople", name:"To the Queen of Cities", turns:7, risk:0.28, terrain:"road", cost:450, rep:31,
+   note:"The whole width of Anatolia to the Bosphorus, and buyers who pay in Venetian silver."},
+  {id:"multan",  to:"multan",  name:"The Indus Road",      turns:8, risk:0.32, terrain:"mountain", cost:520, rep:35, needs:"guide",
+   note:"South-east through the passes to the river and the hot plains of Sind."},
+  {id:"bukhara", to:"bukhara", name:"The Bukhara Road",    turns:8, risk:0.30, terrain:"desert", cost:560, rep:38, needs:"guide",
+   note:"Past Samarkand to the banking city, where a note written here is money."},
+  {id:"kashgar", to:"kashgar", name:"The Far Road",        turns:12,risk:0.38, terrain:"mountain", cost:880, rep:46, needs:"guide",
+   note:"The whole road east, and over the roof of the world at the end of it."}
+];
+
+/* ---------------------------------------------------------------------
+   THREE PLACES TO BEGIN. The home city, the roads out of it, what its
+   bazaar stocks, what its buildings are called, and who else trades there.
+   --------------------------------------------------------------------- */
+const STARTS = {
+  samarkand:{
+    id:"samarkand", city:"samarkand", tag:"The crossroads",
+    blurb:"Transoxiana, where every road meets. Paper, silk and the whole eastern trade pass your gate, and so does everybody else's caravan.",
+    opening:"You take possession of a ruined caravanserai a half-day east of Samarkand. The well is dry, the gate is off its hinges, and the road outside carries a hundred laden beasts a day.",
+    routes:ROUTES_SAMARKAND,
+    stocks:["silk","paper","glass","spices","incense","horses","tea","porcelain","jade","lapis"],
+    seat:"Samarkand", ruler:"the governor of Samarkand", art:"gate",
+    props:{
+      serai:{name:"Caravanserai on the Zarafshan"},
+      stall:{name:"Bazaar stall, Samarkand"},
+      godown:{name:"Warehouse quarter"},
+      dye:{name:"Silk workshop & dyehouse"},
+      counting:{name:"Counting house, Bukhara", city:"bukhara"},
+      depot:{name:"Depot at Kashgar", city:"kashgar", needsRoute:"kashgar"},
+      factory:{name:"Sea factory at Hormuz", city:"hormuz", needsRoute:"hormuz"}
+    },
+    rivals:[
+      {id:"karim", name:"Karim of the Red Ledger", culture:"Bukharan", seat:"Samarkand", colour:"#C4544A",
+       roads:["bukhara","merv","balkh"],
+       note:"His ledger is bound in red leather and his father was factor to the last Khwarazmshah. He is two streets away and he counts your beasts."},
+      {id:"sabir", name:"The Sabirid brothers", culture:"Khwarazmian", seat:"Urgench", colour:"#6B87DE",
+       roads:["urgench","bukhara","merv"],
+       note:"Three brothers and one purse, with barges on the Oxus and no interest at all in the eastern roads."},
+      {id:"tegin", name:"The house of Tegin Bay", culture:"Uyghur", seat:"Turfan", colour:"#35A79C",
+       roads:["kashgar","turfan","khotan"],
+       note:"Turfan silk, a cousin in the tax office, and the patience of a family that has done this for two hundred years."}
+    ]
+  },
+
+  trebizond:{
+    id:"trebizond", city:"trebizond", tag:"The Black Sea",
+    blurb:"Where the Silk Road ends and Italy begins. Everything Asia sends comes down the Zigana pass to your quay, and Genoese money is waiting for it.",
+    opening:"You take a half-ruined warehouse on the lower quay at Trebizond, with a rotten roof, a good cellar, and a view of every Genoese galley that comes into the roads.",
+    routes:ROUTES_TREBIZOND,
+    stocks:["alum","wine","cloth","furs","silk","spices","glass","saffron"],
+    seat:"Trebizond", ruler:"the Grand Komnenos", art:"river",
+    props:{
+      serai:{name:"Warehouse on the lower quay"},
+      stall:{name:"Stall in the Greek market"},
+      godown:{name:"Cellars under the citadel"},
+      dye:{name:"Dyehouse and alum works"},
+      counting:{name:"Counting house, Constantinople", city:"constantinople"},
+      depot:{name:"Depot at Tabriz", city:"tabriz", needsRoute:"tabriz"},
+      factory:{name:"Sea factory at Hormuz", city:"hormuz", needsRoute:"hormuz"}
+    },
+    rivals:[
+      {id:"doria", name:"The Doria factors", culture:"Genoese", seat:"Constantinople", colour:"#C4544A",
+       roads:["constantinople","soldaia","sinope"],
+       note:"Genoa's men on the quay, with a galley of their own and a standing quarrel with the Venetians that has never once stopped the business."},
+      {id:"chryso", name:"The house of Chrysoloras", culture:"Greek", seat:"Trebizond", colour:"#6B87DE",
+       roads:["sivas","tbilisi","tabriz"],
+       note:"Trapezuntine gentry with a palace above the port and three generations of the Komnenos's ear."},
+      {id:"orbel", name:"The Orbeliani agents", culture:"Georgian", seat:"Tbilisi", colour:"#35A79C",
+       roads:["tbilisi","tabriz","aleppo"],
+       note:"They came down from the mountains with horses and stayed to sell them. They know every pass between here and Baku."}
+    ]
+  },
+
+  tabriz:{
+    id:"tabriz", city:"tabriz", tag:"Persia",
+    blurb:"The hinge of the world under Mongol law: the Gulf to the south, the Black Sea to the west, the whole road east. Everything passes through, and everything is taxed on the way.",
+    opening:"You take a house and yard off the Ghazan road in Tabriz, with a cracked cistern and a gate wide enough for a laden camel. The city outside is the busiest market between Cairo and Cathay.",
+    routes:ROUTES_TABRIZ,
+    stocks:["silk","saffron","carpets","spices","dates","porcelain","glass","alum","furs"].filter(g => g !== "carpets"),
+    seat:"Tabriz", ruler:"the Mongol governor", art:"tent",
+    props:{
+      serai:{name:"Caravanserai on the Ghazan road"},
+      stall:{name:"Stall in the covered bazaar"},
+      godown:{name:"Warehouse by the Mehran"},
+      dye:{name:"Silk workshop & dyehouse"},
+      counting:{name:"Counting house, Baghdad", city:"baghdad"},
+      depot:{name:"Depot at Herat", city:"herat", needsRoute:"herat"},
+      factory:{name:"Sea factory at Hormuz", city:"hormuz", needsRoute:"hormuz"}
+    },
+    rivals:[
+      {id:"sarraf", name:"The house of al-Sarraf", culture:"Persian", seat:"Tabriz", colour:"#C4544A",
+       roads:["baghdad","aleppo","herat"],
+       note:"Money-changers who became merchants and never stopped being money-changers. Half the bazaar owes them something."},
+      {id:"venet", name:"The Venetian factory", culture:"Venetian", seat:"Tabriz", colour:"#6B87DE",
+       roads:["trebizond","constantinople","sivas"],
+       note:"Four men, a warehouse and a consul, buying raw silk with silver that came from a mine you will never see."},
+      {id:"halabi", name:"The Halabi partnership", culture:"Syrian", seat:"Aleppo", colour:"#35A79C",
+       roads:["aleppo","baghdad","hormuz"],
+       note:"Aleppo money with a long memory and correspondents in every caravanserai between here and Alexandria."}
+    ]
+  }
+};
+const START_IDS = ["samarkand","trebizond","tabriz"];
+/* The road list in play. Reassigned whenever a game is begun or loaded, so
+   every call site downstream can go on saying ROUTES. */
+let ROUTES = ROUTES_SAMARKAND;
+const startDef = () => STARTS[(S && S.start) || "samarkand"] || STARTS.samarkand;
+const HOME = () => startDef().city;
+function useStart(id){
+  const st = STARTS[id] || STARTS.samarkand;
+  ROUTES = st.routes;
+  return st;
+}
+/* property names and sites move with the start */
+const propOf = id => (startDef().props || {})[id] || {};
+const propName = id => propOf(id).name || PROPS[id].name;
+const propCity = id => propOf(id).city || HOME();
+const propNeeds = id => { const o = propOf(id); return o.needsRoute !== undefined ? o.needsRoute : PROPS[id].needsRoute; };
+/* what the home bazaar actually sells; anything else must be carried in */
+const stocked = () => {
+  const base = startDef().stocks || GOOD_IDS;
+  return GOOD_IDS.filter(g => base.indexOf(g) >= 0 || S.goods[g] > 0);
+};
+/* the far end of whatever road you have, for the winning condition */
+function farRoutes(){
+  const max = ROUTES.reduce((n,r) => Math.max(n, r.turns), 0);
+  return ROUTES.filter(r => r.turns >= Math.max(8, max * 0.72)).map(r => r.id);
+}
 const route = id => ROUTES.find(r => r.id === id);
 
 /* ----------------------------------------------------------- fleet ---
@@ -587,10 +794,12 @@ const RIVALS = [
    colour:"#35A79C", roads:["kashgar","turfan","khotan"],
    note:"Turfan silk, a cousin in the tax office, and the patience of a family that has done this for two hundred years."}
 ];
-const rivalDef = id => RIVALS.find(r => r.id === id);
+const rivalDef = id => (startDef().rivals || []).find(r => r.id === id);
+const chiefDef = () => (startDef().rivals || [])[0] || {name:"a rival house", note:""};
+const chief = () => rivalOf(chiefDef().id);
 const rivalOf  = id => (S.rivals || []).find(r => r.id === id);
 function seedRivals(){
-  S.rivals = RIVALS.map(d => ({id:d.id, wealth:irnd(380, 900), routes:d.roads.slice(), out:[], heat:0}));
+  S.rivals = (startDef().rivals || []).map(d => ({id:d.id, wealth:irnd(380, 900), routes:d.roads.slice(), out:[], heat:0}));
 }
 /* their caravans crowd the same markets yours do */
 function rivalsTurn(){
@@ -660,7 +869,7 @@ const undercutAt = city => (S.undercut && S.undercut.city === city) ? 0.82 : 1;
    a share of that house's contracts, and one more pair of Hands.
    ===================================================================== */
 const HOUSES = [
-  {id:"qutlugh", house:"The House of Qutlugh Inal", culture:"Khwarazmian", seat:"Urgench",
+  {id:"qutlugh", seatCity:"urgench", house:"The House of Qutlugh Inal", culture:"Khwarazmian", seat:"Urgench",
    match:"Gawhar", rep:10, price:180,
    trade:"River freight down the Oxus to the delta and the Kipchak shore.",
    note:"Boatmen and towpath men for four generations. They have never once owned a camel.",
@@ -669,7 +878,7 @@ const HOUSES = [
    gift:{route:"urgench", fleetDiscount:{boat:0.25}, contracts:true},
    giftText:"The Urgench road is opened to you, and the yards at the delta will build you a hull at cost."},
 
-  {id:"barmak", house:"The House of Barmak", culture:"Bukharan Persian", seat:"Bukhara",
+  {id:"barmak", seatCity:"bukhara", house:"The House of Barmak", culture:"Bukharan Persian", seat:"Bukhara",
    match:"Shirin", rep:16, price:320,
    trade:"Bills of exchange, honoured from Nishapur to Kashgar.",
    note:"Bankers who have not troubled to touch a bale of goods in fifty years.",
@@ -678,7 +887,7 @@ const HOUSES = [
    gift:{sellAll:0.08, propDiscount:{counting:0.30}, contracts:true},
    giftText:"Their paper is good everywhere, and every sale you make is worth 8% more."},
 
-  {id:"otemish", house:"The House of Otemish", culture:"Uyghur", seat:"Turfan",
+  {id:"otemish", seatCity:"turfan", house:"The House of Otemish", culture:"Uyghur", seat:"Turfan",
    match:"Altun", rep:26, price:420,
    trade:"Scribes and tax-farmers in the Mongol administration, and silk from the Turfan oases.",
    note:"They write the orders that other men have to obey. Their sons learn four scripts.",
@@ -687,7 +896,7 @@ const HOUSES = [
    gift:{tollFree:true, sell:{silk:0.12}, contracts:true},
    giftText:"Your goods carry a clerk's seal. Levies and seizures fall on someone else."},
 
-  {id:"devashtich", house:"The House of Devashtich", culture:"Sogdian", seat:"Panjikent",
+  {id:"devashtich", seatCity:"samarkand", house:"The House of Devashtich", culture:"Sogdian", seat:"Panjikent",
    match:"Nana", rep:20, price:380,
    trade:"The old caravan aristocracy — the families who ran this road before Islam came to it.",
    note:"Poorer than they were and prouder than they should be. Every caravan master on the road knows the name.",
@@ -705,7 +914,7 @@ const HOUSES = [
    gift:{buy:{horses:-0.32}, riskTerrain:{road:0.10, desert:0.15}, contracts:true},
    giftText:"Ferghana horses at a kinsman's price, and riders who know whose beasts those are."},
 
-  {id:"nishapuri", house:"The House of Nishapuri", culture:"Khorasani Persian", seat:"Herat",
+  {id:"nishapuri", seatCity:"herat", house:"The House of Nishapuri", culture:"Khorasani Persian", seat:"Herat",
    match:"Mahasti", rep:22, price:400,
    trade:"Raw silk, saffron and the court taste of Khorasan.",
    note:"Poets on the payroll and a garden with a water-channel through the middle of the house.",
@@ -714,7 +923,7 @@ const HOUSES = [
    gift:{route:"herat", sell:{silk:0.16}, contracts:true},
    giftText:"The Herat road is yours, and their weavers take your silk at a price no stranger is offered."},
 
-  {id:"mamikonian", house:"The House of Mamikonian", culture:"Armenian", seat:"Tabriz",
+  {id:"mamikonian", seatCity:"tabriz", house:"The House of Mamikonian", culture:"Armenian", seat:"Tabriz",
    match:"Siranush", rep:28, price:520,
    trade:"The western end of everything: Genoese and Venetian factors, and silver by the sack.",
    note:"Three brothers, four cities, and a standing feud with the Genoese that has never stopped the business.",
@@ -723,7 +932,7 @@ const HOUSES = [
    gift:{route:"tabriz", sell:{porcelain:0.14, jade:0.10}, contracts:true},
    giftText:"The Western Road is opened, and Frankish buyers bid against each other for your porcelain."},
 
-  {id:"benyosef", house:"The House of Ben Yosef", culture:"Radhanite Jewish", seat:"Tabriz and Baghdad",
+  {id:"benyosef", seatCity:"tabriz", house:"The House of Ben Yosef", culture:"Radhanite Jewish", seat:"Tabriz and Baghdad",
    match:"Rivka", rep:24, price:460,
    trade:"Credit that travels: a note written here is money in Cairo.",
    note:"Four brothers in four cities, and a correspondence that has not missed a season in thirty years.",
@@ -732,7 +941,7 @@ const HOUSES = [
    gift:{graceTurns:4, sellAll:0.05, contracts:true},
    giftText:"Their credit stands behind yours. Creditors will wait four turns longer before they move on you."},
 
-  {id:"sabrisho", house:"The House of Mar Sabrisho", culture:"Nestorian Syriac", seat:"Merv",
+  {id:"sabrisho", seatCity:"merv", house:"The House of Mar Sabrisho", culture:"Nestorian Syriac", seat:"Merv",
    match:"Maryam", rep:18, price:300,
    trade:"The church road east — monasteries, physicians and letters, all the way to Chang'an.",
    note:"Merchants who are also deacons, and who know the abbot of every house between here and the Gobi.",
@@ -741,7 +950,7 @@ const HOUSES = [
    gift:{guide:true, riskTerrain:{desert:0.14}, contracts:true},
    giftText:"Their deacons know the eastern wells. You need no hired guide to take the guided roads."},
 
-  {id:"rajan", house:"The House of Rajan", culture:"Kashmiri", seat:"Multan",
+  {id:"rajan", seatCity:"multan", house:"The House of Rajan", culture:"Kashmiri", seat:"Multan",
    match:"Padmini", rep:30, price:560,
    trade:"Pepper, indigo and camphor coming up the Indus from the sea.",
    note:"They buy at the quay in Cambay and sell in Balkh, and consider the Silk Road a side business.",
@@ -750,7 +959,7 @@ const HOUSES = [
    gift:{route:"multan", buy:{spices:-0.30, incense:-0.22}, contracts:true},
    giftText:"The Indus Road is opened, and pepper reaches you at the price it leaves the quay."},
 
-  {id:"li", house:"The House of Li", culture:"Chinese", seat:"Ganzhou",
+  {id:"li", seatCity:"changan", house:"The House of Li", culture:"Chinese", seat:"Ganzhou",
    match:"Li Wan", rep:36, price:700,
    trade:"Porcelain and brick tea at the kiln and the press, a year's march from here.",
    note:"The eastern end of the road, in one family. They have been doing this since the Tang.",
@@ -767,8 +976,37 @@ const HOUSES = [
    dowry:{ducats:500, fleet:[{line:"camel",tier:1,n:2}]},
    gift:{tollFree:true, repute:12, postContract:true, mongolTie:true, contracts:true},
    giftText:"The yam is opened to you and the tax-men look elsewhere — and the bazaar makes a note of it."}
+,
+  {id:"doria", seatCity:"constantinople", house:"The House of Doria", culture:"Genoese", seat:"Constantinople",
+   match:"Simonetta", rep:26, price:520,
+   trade:"Galleys, alum and the whole western end of the trade, bought with Genoese silver.",
+   note:"They have a bank in Genoa, a consul in Constantinople and an opinion about the Venetians that they will share at length.",
+   wedding:"A notary, a priest and two witnesses who between them speak four languages and trust none of them.",
+   dowry:{ducats:400, goods:{cloth:5}},
+   gift:{route:"constantinople", sell:{cloth:0.14, furs:0.10}, contracts:true},
+   giftText:"The road to the Queen of Cities is opened, and Genoese buyers take your woollens at a partner's price."},
+
+  {id:"komnenos", seatCity:"trebizond", house:"The House of Sarantenos", culture:"Greek", seat:"Trebizond",
+   match:"Theodora", rep:20, price:360,
+   trade:"Court connections, harbour dues, and three generations of knowing which official to ask.",
+   note:"Trapezuntine gentry with a palace above the port. They consider trade slightly beneath them and are extremely good at it.",
+   wedding:"A wedding in the palace church, and a feast at which nobody mentions money once.",
+   dowry:{ducats:280, stores:50},
+   gift:{sellAll:0.07, tollFree:true, contracts:true},
+   giftText:"The harbour officials find your papers in order, always, and every sale is worth a little more."},
+
+  {id:"orbeliani", seatCity:"tbilisi", house:"The House of Orbeliani", culture:"Georgian", seat:"Tbilisi",
+   match:"Rusudan", rep:16, price:260,
+   trade:"Horses, wine and the passes of the Caucasus, held by a family that has held them a long time.",
+   note:"They came down from the mountains with horses and stayed to sell them. They know every pass between here and Baku.",
+   wedding:"Three days of it, mostly outdoors, ending with a toast that takes eleven minutes.",
+   dowry:{ducats:150, fleet:[{line:"camel",tier:0,n:2}]},
+   gift:{riskTerrain:{mountain:0.20}, buy:{horses:-0.28, wine:-0.24}, contracts:true},
+   giftText:"Their people take your columns over the passes, and horses and wine reach you at a kinsman's price."}
 ];
 const houseById = id => HOUSES.find(h => h.id === id);
+/* only the houses this world can actually reach */
+const reachableHouse = h => !h.seatCity || h.seatCity === HOME() || ROUTES.some(r => r.to === h.seatCity);
 
 /* =====================================================================
    THE TRIP LIBRARY
@@ -1338,27 +1576,27 @@ const EVENTS = [
    one beat at a time, with a cooling-off between beats.
    ===================================================================== */
 const THREADS = [
-  {id:"rival", name:"Karim of the Red Ledger", stages:[
+  {id:"rival", name:"The rival house", stages:[
     {when:()=>netIncome()>=18 || S.repute>=16, run(){
-      const k = rivalOf("karim"); if(k){ k.heat = clamp(k.heat + 0.4, 0, 1); k.wealth += 250; }
-      post("bad","<em>A rival takes notice.</em> Karim ibn Dawud, whose ledger is bound in red leather and whose father was factor to the last Khwarazmshah, asks in the cloth row who exactly you are.");
+      const k = chief(); if(k){ k.heat = clamp(k.heat + 0.4, 0, 1); k.wealth += 250; }
+      post("bad","<em>A rival takes notice.</em> " + esc(chiefDef().name) + " asks in the cloth row who exactly you are. " + esc(chiefDef().note));
       return true; }},
     {when:()=>true, run(){
       GOOD_IDS.forEach(g => S.supply[g] = clamp(S.supply[g]-0.05,0.5,2.2));
-      post("bad","<em>Karim moves.</em> He undercuts you on three lines at once and takes a loss to do it. Your buyers learn to wait a day before dealing with you.",["prices soften across the bazaar"]);
+      post("bad","<em>" + esc(chiefDef().name) + " moves.</em> They undercut you on three lines at once and take a loss to do it. Your buyers learn to wait a day before dealing with you.",["prices soften across the bazaar"]);
       return true; }},
     {when:()=>true, run(){
       repute(-4);
       post("bad","<em>Slander.</em> A story goes round that your weights are light and your bonds are slow. It is not true, and it is repeated everywhere.",["-4 repute"]);
       return true; }},
     {when:()=>true, run(){
-      ask("Karim's man at your gate","He offers, on his master's behalf, to divide the roads: the west to Karim, the east to you. He has brought a written bond and a pen.",[
+      ask("A man at your gate","He offers, on his master's behalf, to divide the roads between the two houses: the near roads to " + chiefDef().name + ", the far ones to you. He has brought a written bond and a pen.",[
         {t:"Sign the division", s:"Peace, and a smaller world.", do(){
           S.flags.divided=true; repute(2);
           post("","You sign. It is a quieter world and a smaller one. The western markets will not pay you what they pay him.");}},
         {t:"Refuse him", s:"He will make you regret it. You may make it back.", do(){
           S.flags.feud=true; repute(3);
-          const k = rivalOf("karim"); if(k){ k.heat = 1; k.wealth += 400; }
+          const k = chief(); if(k){ k.heat = 1; k.wealth += 400; }
           post("gold","You hand the bond back unsigned. His man says nothing at all on the way out, which is worse than an argument.");}}
       ]);
       return true; }},
@@ -1368,24 +1606,24 @@ const THREADS = [
       return true; }},
     {when:()=>true, run(){
       const price = Math.round(clamp(netWorth()*0.16, 300, 3200));
-      ask("Karim is finished","His eastern partner has absconded and his creditors are at the counting-house door. The red ledger is for sale, and so is his half of the cloth row.",[
+      ask(chiefDef().name + " is finished","Their far partner has absconded and the creditors are at the counting-house door. The books are for sale, and so is their half of the cloth row.",[
         {t:"Buy him out — " + fmt(price) + "d", s:"His books, his buyers, his contracts.", do(){
           if(S.ducats<price){ toast("bad","You cannot raise it."); return; }
-          coin(-price,"Bought out the House of Karim"); repute(10); S.flags.boughtRival=true;
-          const k = rivalOf("karim");
+          coin(-price,"Bought out " + chiefDef().name); repute(10); S.flags.boughtRival=true;
+          const k = chief(), kid = chiefDef().id;
           if(k){ k.routes.forEach(rid => { if(!S.routes[rid]) S.routes[rid] = {open:false,runs:0,sat:0}; });
-                 S.rivals = S.rivals.filter(x => x.id !== "karim"); }
+                 S.rivals = S.rivals.filter(x => x.id !== kid); }
           if(S.props.stall < 3) S.props.stall = Math.min(3, S.props.stall+1);
           for(let i=0;i<3;i++){ const o = makeOffer(); if(o) S.offers.push(o); }
-          post("gold","<em>The red ledger changes hands.</em> You buy his book, his buyers and his lease. He signs it in front of witnesses and does not look up.");}},
-        {t:"Let him fall", s:"Costs nothing. Costs something.", do(){ repute(-2);
-          S.rivals = S.rivals.filter(x => x.id !== "karim");
-          post("","You let the creditors have him. Two of his drivers come to you for work and you take them. Nobody in the row thinks better of you for it.");}},
+          post("gold","<em>The book changes hands.</em> You buy their ledger, their buyers and their lease. It is signed in front of witnesses by a man who does not look up.");}},
+        {t:"Let them fall", s:"Costs nothing. Costs something.", do(){ repute(-2);
+          S.rivals = S.rivals.filter(x => x.id !== chiefDef().id);
+          post("","You let the creditors have them. Two of their drivers come to you for work and you take them. Nobody in the row thinks better of you for it.");}},
         {t:"Pay his smallest creditors", s:"-" + Math.round(price*0.3) + "d, and an enemy who owes you.", do(){
           const c = Math.round(price*0.3); if(S.ducats<c){ toast("bad","Not enough ducats."); return; }
-          coin(-c,"Karim's creditors"); repute(12); S.flags.savedRival=true;
-          const k2 = rivalOf("karim"); if(k2){ k2.heat = 0; k2.wealth = Math.round(k2.wealth * 0.5); }
-          post("gold","<em>An enemy in your debt.</em> You quietly settle the small men he owed — the porters, the ropemaker, the widow with the dye vats. Karim hears who did it. So does everyone else.");}}
+          coin(-c,"Their creditors"); repute(12); S.flags.savedRival=true;
+          const k2 = chief(); if(k2){ k2.heat = 0; k2.wealth = Math.round(k2.wealth * 0.5); }
+          post("gold","<em>An enemy in your debt.</em> You quietly settle the small men they owed — the porters, the ropemaker, the widow with the dye vats. They hear who did it. So does everyone else.");}}
       ]);
       return true; }}
   ]},
@@ -1486,10 +1724,12 @@ const THREADS = [
    ===================================================================== */
 let S = null;
 
-function newGame(playerName, portrait, age, sex, sonA, sonB){
+function newGame(playerName, portrait, age, sex, sonA, sonB, startId){
+  startId = STARTS[startId] ? startId : "samarkand";
+  useStart(startId);
   S = {
     v:3, houseName:"The House of " + playerName.split(" ")[0], tab:"bazaar", turn:0,
-    difficulty:"road", seen:{},
+    difficulty:"road", seen:{}, start:startId,
     ducats:CONFIG.startDucats, stores:CONFIG.startStores, repute:CONFIG.startRepute,
     goods:Object.fromEntries(GOOD_IDS.map(g=>[g,0])),
     hist:Object.fromEntries(GOOD_IDS.map(g=>[g,[]])),
@@ -1498,7 +1738,7 @@ function newGame(playerName, portrait, age, sex, sonA, sonB){
     staff:[],
     fleet:[],
     fleetTier:{camel:0, mule:0, boat:0},
-    routes:{bukhara:{open:true, runs:0, sat:0}},
+    routes:{},
     caravans:[],
     house:[
       {id:"m1", name:playerName, age:age, role:"idle", at:null, skill:3, you:true, busy:0,
@@ -1513,9 +1753,10 @@ function newGame(playerName, portrait, age, sex, sonA, sonB){
     over:null, plan:null
   };
   S.threads = Object.fromEntries(THREADS.map(t=>[t.id,{stage:0, cool:0, done:false}]));
+  ROUTES.filter(r => r.open).forEach(r => { S.routes[r.id] = {open:true, runs:0, sat:0}; });
   seedRivals();
   addUnit("camel",0); addUnit("camel",0);
-  post("gold","You take possession of a ruined caravanserai a half-day east of Samarkand. The well is dry, the gate is off its hinges, and the road outside carries a hundred laden beasts a day.");
+  post("gold", startDef().opening);
   return S;
 }
 
@@ -1570,6 +1811,8 @@ function repair(){                       // forward-compatible defaults
   S.fleetTier = S.fleetTier || {camel:0, mule:0, boat:0};
   S.stat = Object.assign({earned:0,spent:0,tripsDone:0,tripsLost:0,taps:0,deals:0,dealsLate:0}, S.stat||{});
   S.seen = S.seen || {};
+  S.start = STARTS[S.start] ? S.start : "samarkand";
+  useStart(S.start);                       // the road list in play follows the save
   if(!Array.isArray(S.rivals) || !S.rivals.length) seedRivals();
   S.rivals.forEach(r => { r.out = r.out || []; r.routes = r.routes || (rivalDef(r.id)||{roads:[]}).roads.slice(); });
   S.hist = S.hist || {};
@@ -1693,7 +1936,7 @@ function issueTitle(it){
   const d = ISSUES[it.id];
   if(it.rid && route(it.rid)) return d.name + " — " + route(it.rid).name.toLowerCase().replace(/^the /,"");
   if(it.city) return "Sickness at " + CITIES[it.city].name;
-  if(it.pid) return d.name + " — " + PROPS[it.pid].name.toLowerCase().replace(/,.*$/,"");
+  if(it.pid) return d.name + " — " + propName(it.pid).toLowerCase().replace(/,.*$/,"");
   return d.name;
 }
 function issueEff(){
@@ -1905,7 +2148,7 @@ function sellGoods(g, q){
   q = Math.max(0, Math.min(q, S.goods[g]));
   if(q <= 0) return;
   const gain = localSell(g) * q;
-  coin(gain, "Sold " + q + " " + GOODS[g].short.toLowerCase() + " in Samarkand");
+  coin(gain, "Sold " + q + " " + GOODS[g].short.toLowerCase() + " at home");
   S.goods[g] -= q;
   S.supply[g] = clamp(S.supply[g] - q * 0.012, 0.5, 2.2);
   toast("good","Sold " + q + " " + GOODS[g].short.toLowerCase() + " for " + fmt(gain) + "d");
@@ -1930,13 +2173,13 @@ function upgradeProp(id){
   const cost = propCost(id, next);
   if(cost > S.ducats){ toast("bad","Not enough ducats."); return; }
   if(def.rep && S.repute < def.rep){ toast("bad","Your name is not yet worth that much."); return; }
-  if(def.needsRoute && !routeOpen(def.needsRoute)){ toast("bad","You have no road there yet."); return; }
+  if(propNeeds(id) && !routeOpen(propNeeds(id))){ toast("bad","You have no road there yet."); return; }
   if(!spendHand()){ toast("bad","No Hands left this turn."); return; }
   const t = def.tiers[next];
-  coin(-cost, def.name + " — " + t.name);
+  coin(-cost, propName(id) + " — " + t.name);
   S.props[id] = next;
   repute(next >= def.tiers.length - 1 ? 3 : 2);
-  post("gold", "<em>" + esc(t.name) + ".</em> " + esc(def.name) + " stands finished. " + esc(t.note));
+  post("gold", "<em>" + esc(t.name) + ".</em> " + esc(propName(id)) + " stands finished. " + esc(t.note));
   toast("good", t.name + " completed.");
   closeSheet(); after();
 }
@@ -1952,8 +2195,8 @@ function hireStaff(type){
   if(want) s.at = want;
   S.staff.push(s);
   post("", esc(s.name) + " takes service with you as " + esc(d.name.toLowerCase()) +
-        (want ? ", for the " + esc(PROPS[want].name.toLowerCase()) : "") + ".");
-  toast("good", s.name + " hired." + (want ? " Posted to the " + PROPS[want].name.toLowerCase() + "." : ""));
+        (want ? ", for the " + esc(propName(want).toLowerCase()) : "") + ".");
+  toast("good", s.name + " hired." + (want ? " Posted to the " + propName(want).toLowerCase() + "." : ""));
   closeSheet(); after();
 }
 function dismissStaff(sid){
@@ -1975,7 +2218,7 @@ function setRole(mid, role, at){
   if(travelling(m)){ toast("bad", m.name + " is on the road."); return; }
   m.role = role; m.at = at || null;
   post("", esc(m.name) + " takes up the work of " + esc(ROLES[role].name.toLowerCase()) +
-        (at ? " at the " + esc(PROPS[at].name.toLowerCase()) : "") + ".");
+        (at ? " at the " + esc(propName(at).toLowerCase()) : "") + ".");
   closeSheet(); after();
 }
 
@@ -2038,7 +2281,7 @@ function routeCost(rid){
 
 /* --------------------------------------------------------- marriage -- */
 const marriageable = () => S.house.filter(m => !m.wed && m.age >= 18 && !travelling(m));
-const canMarry = h => S.marriages.indexOf(h.id) < 0 && S.repute >= h.rep;
+const canMarry = h => S.marriages.indexOf(h.id) < 0 && S.repute >= h.rep && reachableHouse(h);
 function marry(hid, mid){
   const h = houseById(hid), m = S.house.find(x => x.id === mid);
   if(!h || !m) return;
@@ -2053,7 +2296,7 @@ function marry(hid, mid){
   if(d.goods) Object.entries(d.goods).forEach(([g,q]) => { S.goods[g] += q; });
   if(d.fleet) d.fleet.forEach(f => { for(let i=0;i<f.n;i++) addUnit(f.line, f.tier); });
   const g = h.gift || {};
-  if(g.route && !routeOpen(g.route)) S.routes[g.route] = {open:true, runs:0, sat:0};
+  if(g.route && route(g.route) && !routeOpen(g.route)) S.routes[g.route] = {open:true, runs:0, sat:0};
   if(g.repute) repute(g.repute);
   if(g.postContract) S.flags.postContract = true;
   // the spouse joins the household, and that is one more pair of Hands
@@ -2190,7 +2433,7 @@ const keyOf = (line, tier) => line + ":" + tier;
 
 function planInit(rid){
   cancelPlan();
-  S.plan = {rid, leader:null, units:{}, cargo:Object.fromEntries(GOOD_IDS.map(g=>[g,0])), escort:0, bring:true};
+  S.plan = {rid, leader:null, units:{}, cargo:Object.fromEntries(GOOD_IDS.map(g=>[g,0])), escort:0, bring:0.30};
 }
 function cancelPlan(){
   if(!S.plan) return;
@@ -2270,6 +2513,26 @@ function dispatch(){
   toast("good","Caravan away.");
   S.plan = null; S.tab = "roads"; after();
 }
+
+/* What a market has too much of, and what a load of it costs there. */
+function returnCargo(city){
+  const c = CITIES[city];
+  const demandOf = g => c.demand[g] !== undefined ? c.demand[g] : (c.demand.def || 1);
+  let good = c.source && c.source.good;
+  if(!good || demandOf(good) > 1.05){
+    good = GOOD_IDS.slice().sort((a,b) => demandOf(a) - demandOf(b))[0];
+  }
+  return {good, unit: Math.max(1, Math.round(GOODS[good].base * demandOf(good)))};
+}
+/* how much of the takings goes back into the panniers */
+const BRING = [
+  {v:0,    label:"None",      note:"coin only"},
+  {v:0.15, label:"A little",  note:"a seventh of the takings"},
+  {v:0.30, label:"A third",   note:"a third of the takings"},
+  {v:0.50, label:"Half",      note:"half of the takings"},
+  {v:0.75, label:"Most",      note:"three quarters of the takings"}
+];
+const bringShare = c => typeof c.bring === "number" ? c.bring : (c.bring ? 0.30 : 0);
 
 /* -------------------------------------------------- what came back --- */
 function tripText(e, ctx){
@@ -2361,17 +2624,18 @@ function resolveCaravan(c){
   revenue = Math.round(revenue);
   if(revenue) coin(revenue, r.name + " — sales at " + CITIES[r.to].name);
 
-  /* return cargo, bought cheap at the far market */
+  /* the return load: what that market has too much of, bought with a share
+     of what you just took there */
   let brought = null;
-  if(c.bring && revenue > 0 && CITIES[r.to].source && lossFrac < 0.7){
-    const src = CITIES[r.to].source;
-    const unit = Math.max(1, Math.round(GOODS[src.good].base * src.mult));
+  const share = bringShare(c);
+  if(share > 0 && revenue > 0 && lossFrac < 0.7){
+    const rc = returnCargo(r.to);
     const room = Math.max(0, capacity() - held());
-    const q = Math.min(Math.floor(revenue * 0.3 / unit), room, Math.floor(c.loads * 0.8));
+    const q = Math.min(Math.floor(revenue * share / rc.unit), room, Math.floor(c.loads * 0.9));
     if(q > 0){
-      coin(-q * unit, "Return cargo from " + CITIES[r.to].name);
-      S.goods[src.good] += q;
-      brought = q + " " + GOODS[src.good].short.toLowerCase();
+      coin(-q * rc.unit, "Return cargo from " + CITIES[r.to].name);
+      S.goods[rc.good] += q;
+      brought = q + " " + GOODS[rc.good].short.toLowerCase();
     }
   }
 
@@ -2443,8 +2707,11 @@ const ORIGINS = [
    desc:"A tenth of the risk comes off every road you ever take.",
    apply(){}},
   {id:"road",   cost:5, name:"A road already walked",
-   desc:"The Merv road is open to you from the first day.",
-   apply(){ S.routes.merv = {open:true, runs:0, sat:0}; }},
+   desc:"The nearest road out is open to you from the first day.",
+   apply(){
+     const next = ROUTES.filter(r => !routeOpen(r.id)).sort((a,b) => (a.cost||0) - (b.cost||0))[0];
+     if(next) S.routes[next.id] = {open:true, runs:0, sat:0};
+   }},
   {id:"kin",    cost:7, name:"A brother at your side",
    desc:"One more of the household, and one more Hand every turn.",
    apply(){ S.house.push({id:uid("m"), name:pick(["Hakim","Yunus","Ismail","Zafar","Bekhruz"]),
@@ -2476,7 +2743,7 @@ const FLAWS = [
    desc:"Staff cost a quarter more to hire and lose heart twice as fast.",
    apply(){}},
   {id:"enemy",  gain:5, name:"An enemy from the start",
-   desc:"Karim of the Red Ledger already knows your name, and someone is selling your movements.",
+   desc:"The strongest house in the city already knows your name, and someone is selling your movements.",
    apply(){ S.threads.rival.stage = 4; S.threads.rival.cool = S.turn + 2; S.flags.feud = true; addIssue("feud"); }}
 ];
 const MAX_FLAWS = 3;
@@ -2753,7 +3020,7 @@ function fireThread(trigger, ctx){
 
 function checkWin(){
   if(S.over || S.flags.won) return;
-  const far = ["dunhuang","changan","turfan"].some(id => S.routes[id] && S.routes[id].runs > 0);
+  const far = farRoutes().some(id => S.routes[id] && S.routes[id].runs > 0);
   if(netWorth() >= CONFIG.winDucats && S.repute >= CONFIG.winRepute && far){
     S.over = "win";
     post("gold","<em>Master of the Road.</em> Your mark is honoured from Tabriz to the Jade Gate, and men who have never seen your face stable their beasts in your yards.");
@@ -2765,11 +3032,11 @@ function lose(){
   after();
 }
 function goalProgress(){
-  const far = ["dunhuang","changan","turfan"].some(id => S.routes[id] && S.routes[id].runs > 0);
+  const far = farRoutes().some(id => S.routes[id] && S.routes[id].runs > 0);
   return [
     {k:"Worth "+fmt(CONFIG.winDucats)+" ducats", v:clamp(netWorth()/CONFIG.winDucats,0,1), now:fmt(netWorth())},
     {k:"Repute "+CONFIG.winRepute,               v:clamp(S.repute/CONFIG.winRepute,0,1), now:S.repute},
-    {k:"A caravan home from the far east",       v:far?1:0, now:far?"done":"not yet"}
+    {k:"A caravan home from the far end of the road", v:far?1:0, now:far?"done":"not yet"}
   ];
 }
 
@@ -2802,7 +3069,7 @@ function renderChips(){
   const you = S.house.find(m => m.you);
   $("#houseName").innerHTML = esc(S.houseName) + "<small>" +
     (S.flags.won ? "Master of the Road" : S.flags.rais ? "Ra'is of the merchants" :
-     you ? esc(you.name) + ", " + you.age : "Samarkand") + "</small>";
+     you ? esc(you.name) + ", " + you.age : esc(startDef().seat)) + "</small>";
   const b = $("#endturn"), h = hands();
   b.textContent = S.over ? "The road ends here" : (h > 0 ? "End the Turn — " + h + " Hand" + (h===1?"":"s") + " unspent" : "End the Turn");
   b.className = "btn" + (h > 0 ? " ghost" : "");
@@ -2837,7 +3104,7 @@ function render(){
     S.tab === "house"  ? viewHouse() : viewLedger());
   const el = document.getElementById("chartScroll");
   if(el) el.scrollLeft = chartScroll !== null ? chartScroll
-    : Math.max(0, MAP.at.samarkand.x * 0.72 - el.clientWidth / 2);   // open on Samarkand
+    : Math.max(0, (MAP.at[HOME()] || {x:0}).x * 0.72 - el.clientWidth / 2);   // open on the home city
 }
 
 /* A sparkline: no axes, no library, just where the price has been. */
@@ -2870,7 +3137,7 @@ function bestMarket(g){
 }
 function viewBazaar(){
   const need = storesNeed(), room = capacity() - held();
-  let h = banner("bazaar", "Samarkand, the cloth row",
+  let h = banner("bazaar", esc(startDef().seat) + ", the cloth row",
       held() ? held() + " of " + capacity() + " loads in the godown" : "The godown is empty") +
     hintStrip("bazaar") +
     '<section class="sec"><button class="haggle" data-a="haggle">' +
@@ -2892,7 +3159,7 @@ function viewBazaar(){
   h += '<section class="sec"><h2>The bazaar</h2>' +
     '<p class="lede">Warehouse ' + held() + ' of ' + capacity() + ' loads' + (room<=0 ? ' &mdash; <span class="neg">full</span>' : '') +
     '. Buy low here, sell high at the far end of a road.</p><div class="rows">';
-  GOOD_IDS.forEach(g => {
+  stocked().forEach(g => {
     const best = bestMarket(g), bp = buyPrice(g), owned = S.goods[g];
     const trend = S.supply[g] > GOODS[g].supply + 0.06 ? '<span class="tag bad">dear</span>' :
                   S.supply[g] < GOODS[g].supply - 0.06 ? '<span class="tag good">cheap</span>' : '';
@@ -2915,28 +3182,35 @@ function viewBazaar(){
    filled dot and homeward as a ring.
    ===================================================================== */
 const MAP = {
-  w:1000, h:400,
+  w:1320, h:400,
   at:{
-    tabriz:{x:62,y:150,a:"start"},        hormuz:{x:196,y:352},
-    urgench:{x:243,y:52,a:"start"},       merv:{x:250,y:156,a:"end"},
-    herat:{x:270,y:230,a:"end"},          bukhara:{x:300,y:96,a:"end"},
-    samarkand:{x:356,y:126,dy:34},        balkh:{x:346,y:206,a:"end"},
-    multan:{x:424,y:302},                 kashgar:{x:492,y:126,dy:-16},
-    khotan:{x:546,y:192},                 turfan:{x:668,y:62,a:"start"},
-    dunhuang:{x:752,y:112,dy:30},         changan:{x:938,y:214,a:"end"}
+    /* the west */
+    constantinople:{x:44,y:150,a:"start"}, soldaia:{x:96,y:70,a:"start"},
+    sinope:{x:150,y:132,dy:-14},           trebizond:{x:238,y:146,dy:34},
+    sivas:{x:184,y:200,a:"end"},           aleppo:{x:196,y:286,a:"end"},
+    tbilisi:{x:296,y:96,a:"start"},        baghdad:{x:268,y:330,a:"end"},
+    /* and the road east */
+    tabriz:{x:342,y:186,a:"end"},          hormuz:{x:406,y:356},
+    urgench:{x:463,y:52,a:"start"},        merv:{x:470,y:156,a:"end"},
+    herat:{x:490,y:242,a:"end"},           bukhara:{x:520,y:96,a:"end"},
+    samarkand:{x:576,y:126,dy:34},         balkh:{x:566,y:212,a:"end"},
+    multan:{x:644,y:308},                  kashgar:{x:712,y:126,dy:-16},
+    khotan:{x:766,y:192},                  turfan:{x:888,y:62,a:"start"},
+    dunhuang:{x:972,y:112,dy:30},          changan:{x:1158,y:214,a:"end"}
   },
   curve:{bukhara:-0.16, merv:0.10, balkh:-0.22, urgench:-0.14, herat:0.16,
          kashgar:-0.10, khotan:0.12, turfan:-0.13, tabriz:0.13, multan:-0.18,
          hormuz:0.20, dunhuang:0.09, changan:-0.11},
   regions:[
-    {label:"THE  STEPPE",     cx:330, cy:34,  rx:180, ry:30},
-    {label:"THE  TAKLAMAKAN", cx:612, cy:150, rx:132, ry:46},
-    {label:"THE  PAMIRS",     cx:446, cy:172, rx:56,  ry:52},
-    {label:"THE  GULF",       cx:178, cy:356, rx:92,  ry:32}
+    {label:"THE  BLACK  SEA",  cx:150, cy:66,  rx:130, ry:34},
+    {label:"THE  STEPPE",      cx:560, cy:30,  rx:170, ry:28},
+    {label:"THE  TAKLAMAKAN",  cx:832, cy:150, rx:132, ry:46},
+    {label:"THE  PAMIRS",      cx:666, cy:172, rx:56,  ry:52},
+    {label:"THE  GULF",        cx:390, cy:358, rx:92,  ry:30}
   ]
 };
 function mapPath(rid){
-  const r = route(rid), a = MAP.at.samarkand, b = MAP.at[r.to];
+  const r = route(rid), a = MAP.at[HOME()], b = MAP.at[r.to];
   const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
   const k = MAP.curve[rid] || 0.12;
   const cx = (a.x + b.x)/2 - dy * k, cy = (a.y + b.y)/2 + dx * k;
@@ -2990,8 +3264,12 @@ function viewChart(){
     });
   });
   // towns
+  const onChart = {};
+  onChart[HOME()] = true;
+  ROUTES.forEach(r => { onChart[r.to] = true; });
   Object.entries(MAP.at).forEach(([city, m]) => {
-    const home = city === "samarkand";
+    if(!onChart[city]) return;
+    const home = city === HOME();
     const r = ROUTES.find(x => x.to === city);
     const open = r && routeOpen(r.id), sick = cityBlocked(city);
     const deals = S.contracts.filter(k => k.city === city).length;
@@ -3119,6 +3397,7 @@ function viewPlan(){
   const p = S.plan, r = route(p.rid), cap = planCap(), loads = planLoads();
   const val = planValue(), risk = planRisk(), eCost = escortCost(p.escort, r.turns);
   const sMult = seasonRiskMult(r.terrain, S.turn, r.turns);
+  const rc = returnCargo(r.to);
   const invested = GOOD_IDS.reduce((n,g)=>n + p.cargo[g]*buyPrice(g), 0);
   const deals = contractsFor(r.to);
 
@@ -3174,10 +3453,15 @@ function viewPlan(){
   h += '<div class="panel mb"><div class="kv"><span class="k">Escort</span><span class="v">' + (eCost?fmt(eCost)+"d":"free") + '</span></div><div class="pillrow mt">' +
     ESCORTS.map((e,i)=>'<button class="pill" data-a="escort" data-v="' + i + '" aria-pressed="' + (p.escort===i) + '">' +
       e.name + (e.cut?' &minus;' + Math.round(e.cut*100) + '%':'') + '</button>').join("") + '</div>' +
-    '<div class="kv mt"><span class="k">Bring a return cargo</span><span class="v">' +
-      '<button class="pill" data-a="bring" aria-pressed="' + p.bring + '">' +
-      (p.bring ? "Yes — " + GOODS[CITIES[r.to].source ? CITIES[r.to].source.good : "silk"].short.toLowerCase() + " from " + CITIES[r.to].name : "No, coin only") +
-      '</button></span></div></div>';
+    '<div class="kv mt"><span class="k">Spend on a return load</span><span class="v">' +
+      (p.bring > 0 ? Math.round(p.bring*100) + "% of the takings" : "nothing") + '</span></div>' +
+    '<div class="pillrow mt">' + BRING.map(x =>
+      '<button class="pill" data-a="bring" data-v="' + x.v + '" aria-pressed="' + (Math.abs(p.bring - x.v) < 0.001) + '">' +
+      x.label + '</button>').join("") + '</div>' +
+    (p.bring > 0 ? '<p class="hint">' + CITIES[r.to].name + ' is cheapest in ' +
+      GOODS[rc.good].short.toLowerCase() + ' at about ' + rc.unit + 'd the load — roughly ' +
+      Math.max(0, Math.floor(val * p.bring / rc.unit)) + ' loads on these takings, if there is room for them.</p>'
+      : '<p class="hint">The column comes home empty, and the takings stay as coin.</p>') + '</div>';
 
   h += '<div class="panel mb">' +
     '<div class="kv"><span class="k">Cargo at cost</span><span class="v">' + fmt(invested) + 'd</span></div>' +
@@ -3207,12 +3491,12 @@ function viewEstate(){
     '<section class="sec"><h2>Property</h2><div class="rows">';
   Object.entries(PROPS).forEach(([id,def]) => {
     const tier = S.props[id], t = def.tiers[tier], next = def.tiers[tier+1];
-    const locked = (def.rep && S.repute < def.rep) || (def.needsRoute && !routeOpen(def.needsRoute));
+    const locked = (def.rep && S.repute < def.rep) || (propNeeds(id) && !routeOpen(propNeeds(id)));
     const unstaffed = tier > 0 && !staffAt(id);
     const stopped = issueEff().props.indexOf(id) >= 0;
     h += '<button class="row" data-a="prop" data-v="' + id + '">' +
       '<span class="glyph">' + def.g + '</span>' +
-      '<span class="main"><span class="t">' + def.name.replace(/,.*$/,"") +
+      '<span class="main"><span class="t">' + propName(id).replace(/,.*$/,"") +
         (unstaffed ? '<span class="tag bad">unstaffed</span>' : '') +
         (stopped ? '<span class="tag bad">stopped</span>' : '') +
         (locked && tier===0 ? '<span class="tag">' + (def.rep ? "repute " + def.rep : "needs the road") + '</span>' : '') + '</span>' +
@@ -3247,7 +3531,7 @@ function viewEstate(){
       '<span class="main"><span class="t">' + esc(s.name) +
         (s.trusted ? '<span class="tag gold">of the household</span>' : '') +
         (s.busy > S.turn ? '<span class="tag cool">on the road</span>' : '') + '</span>' +
-      '<span class="sub">' + d.name + ' &middot; ' + (s.at ? "at the " + PROPS[s.at].name.toLowerCase().replace(/,.*$/,"") : (d.effect || "unposted")) + '</span>' +
+      '<span class="sub">' + d.name + ' &middot; ' + (s.at ? "at the " + propName(s.at).toLowerCase().replace(/,.*$/,"") : (d.effect || "unposted")) + '</span>' +
       '<span class="who">' + (s.years||0) + ' turns served<span class="bar slim ' + (s.loyalty>=60?"good":s.loyalty<30?"risk":"") + '"><i style="width:' + (s.loyalty||0) + '%"></i></span></span></span>' +
       '<span class="end neg">-' + staffWage(s) + '<small>per turn</small></span><span class="chev">›</span></button>';
   });
@@ -3285,7 +3569,7 @@ function viewHouse(){
         (spent ? '<span class="tag">hand spent</span>' : '') + '</span>' +
       '<span class="sub">' + m.age + ' years &middot; ' +
         (trip ? "Leading the " + trip.name.toLowerCase().replace(/^the /,"") + " to " + CITIES[trip.to].name
-              : ROLES[m.role].name + (m.at ? " of the " + PROPS[m.at].name.toLowerCase().replace(/,.*$/,"") : "")) +
+              : ROLES[m.role].name + (m.at ? " of the " + propName(m.at).toLowerCase().replace(/,.*$/,"") : "")) +
         (m.fromHouse ? " &middot; of " + esc(houseById(m.fromHouse).house.replace("The House of ","")) : "") + '</span></span>' +
       '<span class="end">' + "★".repeat(m.skill) + '<small>skill</small></span><span class="chev">›</span></button>';
   });
@@ -3491,9 +3775,9 @@ function sheetProp(id){
   const def = PROPS[id], tier = S.props[id], t = def.tiers[tier], next = def.tiers[tier+1];
   const s = staffAt(id);
   const lockRep = def.rep && S.repute < def.rep;
-  const lockRoute = def.needsRoute && !routeOpen(def.needsRoute);
+  const lockRoute = propNeeds(id) && !routeOpen(propNeeds(id));
   const spare = S.staff.filter(x => x.type === def.staff && x.at !== id);
-  let h = '<h3>' + def.name + '</h3><p class="sub">' + t.name + ' &mdash; ' + (t.note || "Not yet built.") + '</p>' +
+  let h = '<h3>' + propName(id) + '</h3><p class="sub">' + t.name + ' &mdash; ' + (t.note || "Not yet built.") + '</p>' +
     '<div class="panel mb">' +
     '<div class="kv"><span class="k">Income each turn</span><span class="v ' + (propIncome(id)?"pos":"") + '">' + (propIncome(id)?"+"+propIncome(id):"none") + '</span></div>' +
     (t.cap ? '<div class="kv"><span class="k">Warehouse space</span><span class="v">+' + t.cap + ' loads</span></div>' : '') +
@@ -3510,7 +3794,7 @@ function sheetProp(id){
   }
   if(next){
     const cost = propCost(id, tier+1);
-    const blocked = lockRep ? "Repute " + def.rep + " required" : lockRoute ? "You have no road to " + CITIES[def.city].name : null;
+    const blocked = lockRep ? "Repute " + def.rep + " required" : lockRoute ? "You have no road to " + CITIES[propCity(id)].name : null;
     h += '<div class="panel mb"><div class="kv"><span class="k"><b>' + next.name + '</b></span><span class="v gold">' + fmt(cost) + 'd</span></div>' +
       '<p class="hint">' + (next.note || "") + ' Costs one Hand.</p></div>' +
       '<button class="btn" data-a="upgrade" data-v="' + id + '"' + (blocked || cost>S.ducats || hands()<1 ? " disabled" : "") + '>' +
@@ -3567,12 +3851,12 @@ function sheetStaff(sid){
     '<div class="kv"><span class="k">Years in your service</span><span class="v">' + (s.years||0) + ' turns</span></div>' +
     '<div class="kv"><span class="k">Loyalty</span><span class="v ' + (s.loyalty>=60?"pos":s.loyalty<30?"neg":"") + '">' + Math.round(s.loyalty) + '</span></div>' +
     '<div class="bar ' + (s.loyalty>=60?"good":s.loyalty<30?"risk":"") + '"><i style="width:' + (s.loyalty||0) + '%"></i></div>' +
-    '<div class="kv"><span class="k">Posted to</span><span class="v">' + (s.at ? PROPS[s.at].name : "nowhere") + '</span></div>' +
+    '<div class="kv"><span class="k">Posted to</span><span class="v">' + (s.at ? propName(s.at) : "nowhere") + '</span></div>' +
     (s.trusted ? '<div class="kv"><span class="k">Standing</span><span class="v gold">of the household — gives a Hand</span></div>' : '') +
     '</div>' +
     (ready ? '<p class="hint">' + esc(s.name) + ' has served long enough and well enough to be brought into the household. Wait for the offer, or make it yourself.</p>' +
       '<button class="btn mb" data-a="promote" data-v="' + s.id + '">Bring into the household · ' + fmt(200 + d.wage*25) + 'd</button>' : '') +
-    posts.map(p => '<button class="btn ghost mb" data-a="assign" data-v="' + s.id + '|' + p + '"' + (s.at===p?" disabled":"") + '>Post to the ' + PROPS[p].name.toLowerCase() + '</button>').join("") +
+    posts.map(p => '<button class="btn ghost mb" data-a="assign" data-v="' + s.id + '|' + p + '"' + (s.at===p?" disabled":"") + '>Post to the ' + propName(p).toLowerCase() + '</button>').join("") +
     '<button class="btn danger mt" data-a="dismiss" data-v="' + s.id + '">Pay off and dismiss</button>' +
     '<button class="btn ghost mt" data-a="close">Close</button>';
 }
@@ -3610,7 +3894,7 @@ function sheetMember(mid){
   }).join("") +
   built.map(p => '<button class="row" data-a="role" data-v="' + m.id + '|steward|' + p + '"' +
       (m.role==="steward"&&m.at===p?" disabled":"") + '><span class="main">' +
-      '<span class="t">Steward of the ' + PROPS[p].name.toLowerCase().replace(/,.*$/,"") +
+      '<span class="t">Steward of the ' + propName(p).toLowerCase().replace(/,.*$/,"") +
       (m.role==="steward"&&m.at===p?'<span class="tag gold">current</span>':'') + '</span>' +
       '<span class="sub">+25% of that property\'s income. Gives no Hand.</span></span><span class="chev">›</span></button>').join("") +
   '</div>';
@@ -3704,7 +3988,7 @@ function sheetHouse(hid){
 function sheetTitle(){
   const auto = (function(){ try{ const r = localStorage.getItem(CONFIG.saveKey);
     return r ? stateCard(JSON.parse(r)) : null; }catch(e){ return null; } })();
-  return banner("oasis", "Samarkand, spring 1247", "A ruined serai on the Zarafshan road") +
+  return banner("oasis", "1247", "Three cities, three roads, one ledger") +
     '<h3>The Samarkand Ledger</h3>' +
     '<p class="sub">A trading house on the Silk Road, from a ruined caravanserai to a name they know in Chang\'an.</p>' +
     (auto ? '<button class="btn mb" data-a="t-continue"><span class="ct">Continue</span></button>' +
@@ -3841,7 +4125,7 @@ const NAMES_F = ["Bibi Nasiba","Oyxon bint Yusuf","Zarrina bint Tahir","Malika b
 const SON_NAMES = ["Tair","Sanjar","Ilyas","Rustam","Davud","Arslan","Kamil","Bahram","Otabek","Firuz"];
 
 function startCreate(){
-  build = {portrait:null, name:"", age:BASE_AGE, origins:[], flaws:[], difficulty:"road"};
+  build = {portrait:null, name:"", age:BASE_AGE, origins:[], flaws:[], difficulty:"road", start:"samarkand"};
   openSheet(sheetCreate, undefined, "fixed");
 }
 const buildSpent = () => build.origins.reduce((n,id)=>n + originById(id).cost, 0);
@@ -3850,8 +4134,23 @@ const buildLeft  = () => pointsFor(build.age) + buildGain() - buildSpent();
 
 function sheetCreate(){
   const left = buildLeft(), p = build.portrait;
-  let h = '<h3>The House of the Broken Serai</h3>' +
-    '<p class="sub">Samarkand, the spring of 1247. The wars are over, the roads are open under Mongol law, and a ruined caravanserai on the Zarafshan can be had for what you have.</p>';
+  let h = '<h3>A house on the road</h3>' +
+    '<p class="sub">The spring of 1247. The wars are over, the roads are open under Mongol law, and a merchant with a little money can take a house in any city on the road.</p>';
+
+  const st = STARTS[build.start] || STARTS.samarkand;
+  h += '<div class="panel mb"><div class="kv"><span class="k">Where you begin</span>' +
+    '<span class="v">' + esc(st.seat) + '</span></div>' +
+    '<div class="pillrow mt">' + START_IDS.map(id =>
+      '<button class="pill" data-a="buildstart" data-v="' + id + '" aria-pressed="' +
+      (build.start === id) + '">' + esc(STARTS[id].seat) + '</button>').join("") + '</div>' +
+    '<p class="hint"><b style="color:var(--brass-hi)">' + esc(st.tag) + '.</b> ' + esc(st.blurb) + '</p>' +
+    '<div class="kv" style="margin-top:8px"><span class="k">Your bazaar sells</span>' +
+      '<span class="v" style="font-family:var(--f-ui);text-align:right">' +
+      st.stocks.map(g => GOODS[g].short.toLowerCase()).join(", ") + '</span></div>' +
+    '<div class="kv"><span class="k">The nearest road</span><span class="v">' +
+      esc(st.routes[0].name) + ' &middot; ' + st.routes[0].turns + ' turn' + (st.routes[0].turns>1?"s":"") + '</span></div>' +
+    '<div class="kv"><span class="k">The furthest</span><span class="v">' +
+      esc(st.routes[st.routes.length-1].name) + ' &middot; ' + st.routes[st.routes.length-1].turns + ' turns</span></div></div>';
 
   h += '<div class="panel mb"><div class="kv"><span class="k">Choose a face</span>' +
     '<span class="v">' + (p ? esc(PORTRAIT_SEX[p] === "f" ? "a merchant woman" : "a merchant") : "&mdash;") + '</span></div>' +
@@ -3925,7 +4224,7 @@ function beginGame(){
   if(!build.name) build.name = pick(sex === "f" ? NAMES_F : NAMES_M);
   const pool = SON_NAMES.slice();
   const a = pool.splice(irnd(0,pool.length-1),1)[0], b = pool[irnd(0,pool.length-1)];
-  newGame(build.name, build.portrait, build.age, sex, a, b);
+  newGame(build.name, build.portrait, build.age, sex, a, b, build.start);
   S.difficulty = build.difficulty || "road";
   build.origins.forEach(id => { S.origins.push(id); originById(id).apply(); });
   build.flaws.forEach(id => { S.origins.push(id); flawById(id).apply(); });
@@ -3996,7 +4295,7 @@ document.addEventListener("click", e => {
     case "digest-off": S.flags.noDigest = true; S.digestPending = false; closeSheet(); after();
       toast("", "The account is still in the menu when you want it."); break;
     case "t-continue": closeSheet(); render(); break;
-    case "t-new": startCreate(); break;
+    case "t-new": useStart("samarkand"); startCreate(); break;
     case "cancel": cancelPlan(); after(); window.scrollTo(0,0); break;
     case "close": closeSheet(); render(); break;
     case "haggle": haggle(e, t); break;
@@ -4042,7 +4341,7 @@ document.addEventListener("click", e => {
     case "plan": planInit(v); after(); window.scrollTo(0,0); break;
     case "leader": S.plan.leader = v; after(); break;
     case "escort": S.plan.escort = +v; after(); break;
-    case "bring": S.plan.bring = !S.plan.bring; after(); break;
+    case "bring": S.plan.bring = parseFloat(v) || 0; after(); break;
     case "unit+": {
       const [l,ti] = v.split(":");
       if(freeOn(l,+ti).length > (S.plan.units[v] || 0)) S.plan.units[v] = (S.plan.units[v] || 0) + 1;
@@ -4076,6 +4375,7 @@ document.addEventListener("click", e => {
     case "age+": if(build.age < MAX_AGE){ build.age++; } refreshSheet(); break;
     case "age-": if(build.age > MIN_AGE && pointsFor(build.age-1) + buildGain() >= buildSpent()){ build.age--; } refreshSheet(); break;
     case "builddiff": build.difficulty = v; refreshSheet(); break;
+    case "buildstart": build.start = v; useStart(v); refreshSheet(); break;
     case "trait": {
       const i = build.origins.indexOf(v);
       if(i >= 0) build.origins.splice(i,1);
@@ -4141,7 +4441,7 @@ const PORTRAITS = {
 (function boot(){
   document.documentElement.style.setProperty("--chart-bg", "url(" + ART.steppe + ")");
   const had = load();
-  if(!had) newGame(pick(NAMES_M), PORTRAIT_IDS[6], BASE_AGE, "m", "Tair", "Sanjar");
+  if(!had) newGame(pick(NAMES_M), PORTRAIT_IDS[6], BASE_AGE, "m", "Tair", "Sanjar", "samarkand");
   render();
   openSheet(sheetTitle, undefined, "fixed");
   window.addEventListener("beforeunload", () => { if(S) save(); });
