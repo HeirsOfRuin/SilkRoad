@@ -76,6 +76,23 @@ is an ending, not a wall — you can take the title and keep trading.
 | **Repute** | Gates roads, properties, offices and staff; adds up to +30% on every sale. |
 | **Hands** | Actions per turn. You and your two sons give three. A standing role trades a Hand for income. |
 
+## The chart
+
+The Roads tab opens on a merchant's chart of the road, drawn as inline SVG from
+the route data — no map library, no tiles. Cities sit roughly where they sit on
+the ground, pulled apart where the labels would collide, and it scrolls east
+because the road does.
+
+It is a working screen, not decoration:
+
+- Roads you own are solid gilt; roads not yet yours are dashed and dim; a road
+  blocked by sickness or a shut pass turns madder red.
+- Every caravan sits on its own road at its actual progress — a filled dot
+  outbound, a ring on the way home, with the leader's name above it.
+- A city with an order waiting carries a green ring.
+- Tapping a city opens the caravan planner for that road, or the scouting sheet
+  if the road is not yours yet.
+
 ## The fleet
 
 Every animal and vehicle is an individual unit with a tier, in one of three

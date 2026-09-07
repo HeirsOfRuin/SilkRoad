@@ -218,6 +218,22 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
 .bar.good i{background:var(--tile)}
 .bar.slim{height:4px;margin-top:4px}
 
+.chart{position:relative;margin:-14px -14px 12px;border-bottom:1px solid var(--line);
+  background:var(--ground-2);overflow:hidden}
+.chart::before{content:"";position:absolute;inset:0;background-image:var(--chart-bg);
+  background-size:cover;background-position:center 62%;opacity:.07;filter:grayscale(.75) contrast(.8)}
+.chart-scroll{position:relative;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.chart-scroll svg{display:block}
+.chart-key{position:relative;display:flex;gap:12px;flex-wrap:wrap;padding:6px 14px 8px;
+  font-size:10.5px;letter-spacing:.06em;color:var(--dim);border-top:1px solid var(--line-soft);
+  background:linear-gradient(180deg,rgba(11,16,25,.7),var(--ground-2))}
+.chart-key span{display:flex;align-items:center;gap:5px}
+.chart-key i{width:14px;height:2px;background:var(--brass);border-radius:1px;flex:none}
+.chart-key i.k-shut{background:repeating-linear-gradient(90deg,var(--line) 0 4px,transparent 4px 7px)}
+.chart-key i.k-out{width:8px;height:8px;border-radius:50%;background:var(--brass-hi)}
+.chart-key i.k-back{width:8px;height:8px;border-radius:50%;background:var(--ground);
+  border:2px solid var(--brass-hi)}
+.chart-key i.k-deal{width:9px;height:9px;border-radius:50%;background:none;border:2px solid var(--tile)}
 .banner{position:relative;margin:-14px -14px 16px;aspect-ratio:2.6/1;overflow:hidden;
   border-bottom:1px solid var(--line);background:var(--ground-2)}
 .banner img{width:100%;height:100%;object-fit:cover;display:block}
@@ -2509,14 +2525,20 @@ function renderNav(){
            badge + '<span class="ic">' + ic + '</span>' + label + '</button>';
   }).join("");
 }
+let chartScroll = null;
 function render(){
   renderChips(); renderNav();
+  const old = document.getElementById("chartScroll");
+  if(old) chartScroll = old.scrollLeft;
   if(S.over){ view.innerHTML = viewOver(); return; }
   view.innerHTML =
     S.tab === "bazaar" ? viewBazaar() :
     S.tab === "roads"  ? (S.plan ? viewPlan() : viewRoads()) :
     S.tab === "estate" ? viewEstate() :
     S.tab === "house"  ? viewHouse() : viewLedger();
+  const el = document.getElementById("chartScroll");
+  if(el) el.scrollLeft = chartScroll !== null ? chartScroll
+    : Math.max(0, MAP.at.samarkand.x * 0.72 - el.clientWidth / 2);   // open on Samarkand
 }
 
 /* ------------------------------------------------------------ bazaar - */
@@ -2566,12 +2588,110 @@ function viewBazaar(){
   return h + '</div></section>';
 }
 
+/* =====================================================================
+   THE CHART — a merchant's map, not a survey. Cities sit roughly where
+   they sit on the ground, pulled apart where the labels would collide.
+   Every road you own is drawn; every caravan is on it, outbound as a
+   filled dot and homeward as a ring.
+   ===================================================================== */
+const MAP = {
+  w:1000, h:400,
+  at:{
+    tabriz:{x:62,y:150,a:"start"},        hormuz:{x:196,y:352},
+    urgench:{x:243,y:52,a:"start"},       merv:{x:250,y:156,a:"end"},
+    herat:{x:270,y:230,a:"end"},          bukhara:{x:300,y:96,a:"end"},
+    samarkand:{x:356,y:126,dy:34},        balkh:{x:346,y:206,a:"end"},
+    multan:{x:424,y:302},                 kashgar:{x:492,y:126,dy:-16},
+    khotan:{x:546,y:192},                 turfan:{x:668,y:62,a:"start"},
+    dunhuang:{x:752,y:112,dy:30},         changan:{x:938,y:214,a:"end"}
+  },
+  curve:{bukhara:-0.16, merv:0.10, balkh:-0.22, urgench:-0.14, herat:0.16,
+         kashgar:-0.10, khotan:0.12, turfan:-0.13, tabriz:0.13, multan:-0.18,
+         hormuz:0.20, dunhuang:0.09, changan:-0.11},
+  regions:[
+    {label:"THE  STEPPE",     cx:330, cy:34,  rx:180, ry:30},
+    {label:"THE  TAKLAMAKAN", cx:612, cy:150, rx:132, ry:46},
+    {label:"THE  PAMIRS",     cx:446, cy:172, rx:56,  ry:52},
+    {label:"THE  GULF",       cx:178, cy:356, rx:92,  ry:32}
+  ]
+};
+function mapPath(rid){
+  const r = route(rid), a = MAP.at.samarkand, b = MAP.at[r.to];
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+  const k = MAP.curve[rid] || 0.12;
+  const cx = (a.x + b.x)/2 - dy * k, cy = (a.y + b.y)/2 + dx * k;
+  return {d:"M" + a.x + " " + a.y + " Q" + cx + " " + cy + " " + b.x + " " + b.y, a, b, cx, cy};
+}
+const bezAt = (p, t) => ({
+  x:(1-t)*(1-t)*p.a.x + 2*(1-t)*t*p.cx + t*t*p.b.x,
+  y:(1-t)*(1-t)*p.a.y + 2*(1-t)*t*p.cy + t*t*p.b.y
+});
+function viewChart(){
+  let g = "";
+  MAP.regions.forEach(r => {
+    g += '<ellipse cx="' + r.cx + '" cy="' + r.cy + '" rx="' + r.rx + '" ry="' + r.ry +
+      '" fill="var(--panel-hi)" opacity=".38"/>' +
+      '<text x="' + r.cx + '" y="' + (r.cy + 6) + '" text-anchor="middle" font-size="14" letter-spacing="3.5" ' +
+      'fill="var(--dim)" opacity=".55" font-family="var(--f-ui)" font-weight="700">' + r.label + '</text>';
+  });
+  // roads first, so the towns sit on top of them
+  ROUTES.forEach(r => {
+    const p = mapPath(r.id), open = routeOpen(r.id), blocked = open && routeBlocked(r);
+    const stroke = blocked ? "var(--madder)" : open ? "var(--brass)" : "var(--line)";
+    g += '<path d="' + p.d + '" fill="none" stroke="' + stroke + '" stroke-width="' + (open ? 2.6 : 1.6) +
+      '" stroke-linecap="round" opacity="' + (open ? (blocked ? .8 : .92) : .5) + '"' +
+      (open && !blocked ? "" : ' stroke-dasharray="7 7"') + '/>';
+  });
+  // caravans, out and back along their own road
+  S.caravans.forEach(c => {
+    const r = route(c.rid), p = mapPath(c.rid);
+    const frac = clamp((S.turn - c.out) / r.turns, 0, 1);
+    const home = frac > 0.5;
+    const pt = bezAt(p, home ? (1 - frac) * 2 : frac * 2);
+    g += '<circle cx="' + pt.x.toFixed(1) + '" cy="' + pt.y.toFixed(1) + '" r="7.5" fill="' +
+      (home ? "var(--ground)" : "var(--brass-hi)") + '" stroke="var(--brass-hi)" stroke-width="2.6"/>' +
+      '<text x="' + pt.x.toFixed(1) + '" y="' + (pt.y - 14) + '" text-anchor="middle" font-size="15" ' +
+      'paint-order="stroke" stroke="var(--ground-2)" stroke-width="4.5" stroke-linejoin="round" ' +
+      'fill="var(--brass-hi)" font-family="var(--f-ui)" font-weight="700">' + esc(c.leaderName.split(" ")[0]) + '</text>';
+  });
+  // towns
+  Object.entries(MAP.at).forEach(([city, m]) => {
+    const home = city === "samarkand";
+    const r = ROUTES.find(x => x.to === city);
+    const open = r && routeOpen(r.id), sick = cityBlocked(city);
+    const deals = S.contracts.filter(k => k.city === city).length;
+    const fill = home ? "var(--brass)" : sick ? "var(--madder)" : open ? "var(--brass)" : "var(--ground-2)";
+    const rad = home ? 9 : open ? 6 : 4.5;
+    if(deals) g += '<circle cx="' + m.x + '" cy="' + m.y + '" r="' + (rad + 6) +
+      '" fill="none" stroke="var(--tile)" stroke-width="2"/>';
+    if(home) g += '<circle cx="' + m.x + '" cy="' + m.y + '" r="16" fill="none" stroke="var(--brass)" stroke-width="1.6" opacity=".55"/>';
+    g += '<circle cx="' + m.x + '" cy="' + m.y + '" r="' + rad + '" fill="' + fill +
+      '" stroke="var(--ground)" stroke-width="2"/>';
+    const anchor = m.a || "middle";
+    const lx = anchor === "start" ? m.x + 14 : anchor === "end" ? m.x - 14 : m.x;
+    const ly = m.y + (m.dy !== undefined ? m.dy : (anchor === "middle" ? 28 : 6));
+    g += '<text x="' + lx + '" y="' + ly + '" text-anchor="' + anchor + '" font-size="19" ' +
+      'font-family="var(--f-disp)" paint-order="stroke" stroke="var(--ground-2)" stroke-width="5" ' +
+      'stroke-linejoin="round" fill="' + (open || home ? "var(--text)" : "var(--dim)") + '">' +
+      CITIES[city].name + '</text>';
+    if(r) g += '<circle cx="' + m.x + '" cy="' + m.y + '" r="30" fill="transparent" ' +
+      'style="cursor:pointer" data-a="mapcity" data-v="' + r.id + '"><title>' + esc(r.name) + '</title></circle>';
+  });
+  return '<div class="chart"><div class="chart-scroll" id="chartScroll">' +
+    '<svg viewBox="0 0 ' + MAP.w + ' ' + MAP.h + '" width="' + MAP.w*0.72 + '" height="' + MAP.h*0.72 + '" ' +
+    'role="img" aria-label="A chart of the roads out of Samarkand">' + g + '</svg></div>' +
+    '<div class="chart-key"><span><i class="k-open"></i>yours</span><span><i class="k-shut"></i>not yet</span>' +
+    '<span><i class="k-out"></i>outbound</span><span><i class="k-back"></i>homeward</span>' +
+    '<span><i class="k-deal"></i>an order waiting</span></div></div>';
+}
+
 /* ------------------------------------------------------------- roads - */
 function viewRoads(){
   const open = ROUTES.filter(r => routeOpen(r.id)).length;
-  let h = banner("steppe", "The roads out",
-    S.caravans.length ? S.caravans.length + " caravan" + (S.caravans.length===1?"":"s") + " on the road"
-                      : open + " road" + (open===1?"":"s") + " open to you");
+  let h = viewChart() +
+    '<p class="lede">' + (S.caravans.length
+      ? S.caravans.length + " caravan" + (S.caravans.length===1?"":"s") + " on the road, " + open + " road" + (open===1?"":"s") + " open to you."
+      : open + " road" + (open===1?"":"s") + " open to you. Drag the chart east to see how far the road goes.") + '</p>';
 
   if(S.caravans.length){
     h += '<section class="sec"><h2>On the road</h2><div class="rows">';
@@ -3348,6 +3468,12 @@ document.addEventListener("click", e => {
     case "drop": declineOffer(v); break;
 
     case "route": openSheet(() => sheetRoute(v)); break;
+    case "mapcity":
+      if(routeOpen(v)){
+        if(routeBlocked(route(v))) { toast("bad", routeBlocked(route(v)) + "."); break; }
+        planInit(v); after(); window.scrollTo(0,0);
+      } else openSheet(() => sheetRoute(v));
+      break;
     case "scout": openRoute(v); break;
     case "plan": planInit(v); after(); window.scrollTo(0,0); break;
     case "leader": S.plan.leader = v; after(); break;
@@ -3448,6 +3574,7 @@ const PORTRAITS = {
 
 /* ------------------------------------------------------------- boot -- */
 (function boot(){
+  document.documentElement.style.setProperty("--chart-bg", "url(" + ART.steppe + ")");
   if(load()){ render(); }
   else{
     newGame(pick(NAMES_M), PORTRAIT_IDS[6], BASE_AGE, "m", "Tair", "Sanjar");
