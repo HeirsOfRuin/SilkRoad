@@ -33,8 +33,9 @@ but does not travel between devices.
    alms, courting the citadel, teaching a son, an afternoon in the bathhouse
    where the road's news is actually traded.
 
-Win: net worth 12,000 ducats, Repute 60, and at least one caravan home from
-Turfan, Dunhuang or Chang'an. Lose: three consecutive turns in the red.
+Win: net worth 20,000 ducats, Repute 60, and at least one caravan home from
+Turfan, Dunhuang or Chang'an. Lose: three consecutive turns in the red. Winning
+is an ending, not a wall — you can take the title and keep trading.
 
 ## Resources
 
@@ -98,8 +99,23 @@ length. The content tables (`GOODS`, `CITIES`, `ROUTES`, `PROPS`, `STAFF`,
 `BEASTS`, `EVENTS`, `THREADS`) are plain data and can be extended without
 touching the engine.
 
+## Art
+
+Six pixel-art bands — the bazaar, an oasis at dusk, the steppe, a city gate, a
+merchant's tent, a river crossing — head the intro and each tab, cropped to
+864x432 and embedded as WebP data URIs (about 400 KB in total). Embedding rather
+than linking keeps the game a single file that works offline, from a `file://`
+URL, and inside a sandboxed page that blocks external images. The same crops are
+kept as real files in `art/` so they can be re-cropped and re-embedded.
+
+Each banner carries a live line rather than a caption — loads in the godown,
+caravans on the road, properties built and kept — so the art does some work.
+
 ## File layout
 
-One file, `index.html`, in sections: styles, config and content data, state and
+- `index.html` — the whole game.
+- `art/*.webp` — the six banner crops, also embedded in the HTML.
+
+`index.html` is in sections: styles, config and content data, state and
 persistence, derived values, actions, the event table and threads, end-of-turn
-resolution, view renderers, sheets and input wiring.
+resolution, view renderers, sheets, input wiring, and the embedded art.
