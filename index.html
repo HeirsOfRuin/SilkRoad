@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0F1621">
-<meta name="description" content="Silk Road: a turn-based merchant game. Build a trading house from a ruined caravanserai outside Samarkand, 1247.">
+<meta name="description" content="Silk Road: a turn-based merchant game. Build a trading house from Samarkand, Trebizond or Tabriz, 1247.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -593,7 +593,12 @@ const STARTS = {
     stocks:["alum","wine","cloth","furs","silk","spices","glass","saffron"],
     seat:"Trebizond", ruler:"the Grand Komnenos", art:"river",
     props:{
-      serai:{name:"Warehouse on the lower quay"},
+      serai:{name:"Warehouse on the lower quay", tiers:[
+        {name:"Roof half gone",       note:"Rain comes through onto the bales, and the rats have the rest."},
+        {name:"Sound warehouse",      note:"A new roof, a dry floor, and a bar that actually holds the door."},
+        {name:"Busy quayside house",  note:"Porters queue at the gate before the galleys have even tied up."},
+        {name:"The great warehouse",  note:"Two floors, a counting room, and a customs seal of your own over the door."}
+      ]},
       stall:{name:"Stall in the Greek market"},
       godown:{name:"Cellars under the citadel"},
       dye:{name:"Dyehouse and alum works"},
@@ -659,6 +664,11 @@ const propOf = id => (startDef().props || {})[id] || {};
 const propName = id => propOf(id).name || PROPS[id].name;
 const propCity = id => propOf(id).city || HOME();
 const propNeeds = id => { const o = propOf(id); return o.needsRoute !== undefined ? o.needsRoute : PROPS[id].needsRoute; };
+function tierText(id, tier){
+  const t = PROPS[id].tiers[tier]; if(!t) return t;
+  const o = propOf(id).tiers && propOf(id).tiers[tier];
+  return o ? {name:o.name || t.name, note:o.note !== undefined ? o.note : t.note} : t;
+}
 /* what the home bazaar actually sells; anything else must be carried in */
 const stocked = () => {
   const base = startDef().stocks || GOOD_IDS;
@@ -734,7 +744,7 @@ const PROPS = {
     tiers:[
       {name:"None",            cost:0,   income:0,  sell:0,    note:""},
       {name:"Factor's office", cost:470, income:28, sell:0.05, note:"Your ledger, kept in two cities."},
-      {name:"Bank of the road",cost:1050,income:64, sell:0.10, note:"Bills of exchange, honoured in Merv."}
+      {name:"Bank of the road",cost:1050,income:64, sell:0.10, note:"Bills of exchange, honoured wherever your name is known."}
     ]},
   depot:{ name:"Depot at Kashgar", city:"kashgar", staff:"factor", g:"De", needsRoute:"kashgar",
     tiers:[
@@ -753,7 +763,7 @@ const PROPS = {
    Staff are not Hands. They are paid people who do one job. A few of
    them, over years, become people you would trust with the seal.      */
 const STAFF = {
-  innkeeper: {name:"Innkeeper",      hire:45,  wage:4,  desc:"Runs the caravanserai without a hand of yours."},
+  innkeeper: {name:"Innkeeper",      hire:45,  wage:4,  desc:"Runs the house without a hand of yours."},
   shopkeeper:{name:"Shopkeeper",     hire:40,  wage:3,  desc:"Minds the stall and the weights."},
   clerk:     {name:"Warehouse clerk",hire:45,  wage:3,  desc:"Keeps the godown and its tallies."},
   dyemaster: {name:"Dyemaster",      hire:95,  wage:6,  desc:"Master of madder, indigo and the vat."},
@@ -783,17 +793,6 @@ const ROLES = {
    they take things from you by name.
    Karim is the first of them, and the story thread moves this same object.
    ===================================================================== */
-const RIVALS = [
-  {id:"karim", name:"Karim of the Red Ledger", culture:"Bukharan", seat:"Samarkand",
-   colour:"#C4544A", roads:["bukhara","merv","balkh"],
-   note:"His ledger is bound in red leather and his father was factor to the last Khwarazmshah. He is two streets away and he counts your beasts."},
-  {id:"sabir", name:"The Sabirid brothers", culture:"Khwarazmian", seat:"Urgench",
-   colour:"#6B87DE", roads:["urgench","bukhara","merv"],
-   note:"Three brothers and one purse, with barges on the Oxus and no interest at all in the eastern roads."},
-  {id:"tegin", name:"The house of Tegin Bay", culture:"Uyghur", seat:"Turfan",
-   colour:"#35A79C", roads:["kashgar","turfan","khotan"],
-   note:"Turfan silk, a cousin in the tax office, and the patience of a family that has done this for two hundred years."}
-];
 const rivalDef = id => (startDef().rivals || []).find(r => r.id === id);
 const chiefDef = () => (startDef().rivals || [])[0] || {name:"a rival house", note:""};
 const chief = () => rivalOf(chiefDef().id);
@@ -1112,7 +1111,7 @@ const TRIP_EVENTS = [
 {t:"desert",k:"moderate",x:"An oasis lord decides the road is his and charges by the beast, in arrears, for both directions."},
 {t:"desert",k:"moderate",fx:"issue:murrain",x:"Something in the water at a bad well. The beasts came home sick and they are not getting better."},
 {t:"desert",k:"moderate",x:"The guide was drunk, or lying, or both. Six days were spent finding out which."},
-{t:"desert",k:"severe",x:"They walked out of the Taklamakan with what they stood in. The rest is under the sand somewhere between two wells."},
+{t:"desert",k:"severe",x:"They walked out of the waste with what they stood in. The rest is under the sand somewhere between two wells."},
 {t:"desert",k:"severe",x:"A storm buried the camp at night. They dug out four men and none of the cargo."},
 {t:"desert",k:"severe",x:"The wells on the southern rim had been poisoned in somebody else's war. Half the beasts died within the week."},
 {t:"desert",k:"severe",x:"Raiders took the column at the last well before the gate. {leader} was ransomed. Nothing else was."},
@@ -1122,7 +1121,7 @@ const TRIP_EVENTS = [
 {t:"mountain",k:"colour",x:"Clear passes, hard frost at night, and a view from the top that {leader} will describe to anyone who stands still."},
 {t:"mountain",k:"colour",x:"The guide took them over on the fourth day of a five-day weather window, and said nothing about it until they were down."},
 {t:"mountain",k:"colour",x:"Ibex on the skyline every morning and not one avalanche the whole way."},
-{t:"mountain",k:"colour",x:"They met a Kashmiri column coming the other way and traded news, tea and a great deal of unreliable advice."},
+{t:"mountain",k:"colour",x:"They met a column from the far side of the range coming the other way, and traded news, tea and a great deal of unreliable advice."},
 {t:"mountain",k:"boon",fx:"repute",x:"They carried a stranded monk over the pass on a spare beast. He turned out to be somebody, and said so to somebody else."},
 {t:"mountain",k:"boon",fx:"goods",x:"A village above the treeline had a winter's worth of raw jade and no way to move it before spring."},
 {t:"mountain",k:"minor",x:"A pack beast goes off the path at a bad corner. They hear it for a long time."},
@@ -1203,7 +1202,7 @@ const ISSUES = {
           done:"He bleeds them, changes the fodder, burns the old bedding, and charges for all three."}]},
 
   snowbound:{ name:"The high passes are shut", g:"Sn", eff:{blockTerrain:"mountain"}, auto:4,
-    text:"Snow came early to the Pamirs and the passes are closed until the thaw.",
+    text:"Snow came early to the high passes and they are closed until the thaw.",
     bite:"No caravan can take a mountain road.",
     fix:[]},
 
@@ -1334,7 +1333,7 @@ const EVENTS = [
   {id:"shortage", w:9, when:()=>true, run(){
     const g = pick(GOOD_IDS);
     S.supply[g] = clamp(S.supply[g] + rnd(0.14,0.30), 0.5, 2.2);
-    return {kind:"", text:"Word comes that the " + GOODS[g].short.toLowerCase() + " road is closed at the far end. Stocks tighten in Samarkand.", d:[GOODS[g].short + " dear"]};
+    return {kind:"", text:"Word comes that the " + GOODS[g].short.toLowerCase() + " road is closed at the far end. Stocks tighten at home.", d:[GOODS[g].short + " dear"]};
   }},
   {id:"tax", w:8, when:()=>S.ducats>200, run(){
     let n = Math.round(clamp(S.ducats*0.05, 12, 160));
@@ -1346,7 +1345,7 @@ const EVENTS = [
   {id:"gift", w:5, when:()=>S.repute>=12, run(){
     const n = irnd(20, 50) + S.repute;
     coin(n, "Gift from a grateful merchant");
-    return {kind:"good", text:"A Bukharan you once fronted fodder to sends a purse and a bolt of cloth. He remembered.", d:["+"+n+"d"]};
+    return {kind:"good", text:"A merchant you once fronted fodder to, from a city a long way off, sends a purse and a bolt of cloth. He remembered.", d:["+"+n+"d"]};
   }},
   {id:"apprentice", w:5, when:()=>S.repute>=10 && S.staff.length<12, run(){
     return ask("A boy at the gate","He says his father drove for you once, and that he can read a weight-bill.",[
@@ -1385,7 +1384,7 @@ const EVENTS = [
   }},
   {id:"passes", w:5, when:()=>seasonOf(S.turn)==="Autumn" && !seasonShut("mountain") && !hasIssue("snowbound") && ROUTES.some(r=>routeOpen(r.id)&&r.terrain==="mountain"), run(){
     addIssue("snowbound");
-    return {kind:"bad", text:"<em>The passes are shut.</em> Snow came a month early to the Pamirs and everything over the top waits for the thaw."};
+    return {kind:"bad", text:"<em>The passes are shut.</em> Snow came a month early and everything over the top waits for the thaw."};
   }},
   {id:"harvest", w:5, when:()=>seasonOf(S.turn)==="Autumn", run(){
     const n = irnd(8, 14 + S.props.serai*4);
@@ -1471,7 +1470,7 @@ const EVENTS = [
     const n = irnd(15,40);
     return ask("A geographer's request","A man copying a road-book asks for your stage-distances east, and offers to name your house in the margin.",[
       {t:"Give him the book", s:"-" + n + "d in a copyist's time. Your name travels.", do(){ coin(-n,"Copyist"); repute(5);
-        post("good","Your stages go into a book that will be read in Tabriz and Cairo. Merchants you will never meet will know where to stable.");}},
+        post("good","Your stages go into a book that will be read in cities you will never visit. Merchants you will never meet will know where to stable.");}},
       {t:"Keep your roads to yourself", s:"Knowledge is stock in trade.", do(){ S.flags.secretive=true;
         post("","You send him away with tea and nothing else. Some knowledge is worth more unwritten.");}}
     ]);
@@ -1633,7 +1632,7 @@ const THREADS = [
       post("gold","<em>An invitation.</em> The governor's steward asks you to the citadel to advise on the grain price. You are seated below the qadi and above the perfumers.");
       return true; }},
     {when:()=>S.repute>=22, run(){
-      ask("The post-road contract","The citadel needs fodder and stabling for the yam riders on the Bukhara stage. It pays steadily and it ties you to the state.",[
+      ask("The post-road contract","The citadel needs fodder and stabling for the yam riders on the nearest stage of the post road. It pays steadily and it ties you to the state.",[
         {t:"Take the contract", s:"Standing income, and an obligation.", do(){
           S.flags.postContract=true; repute(4);
           post("gold","<em>The yam contract.</em> Your serai is now a post-stage. Riders change horses in your yard at any hour, and the treasury pays by the quarter.",["standing income up"]);}},
@@ -1643,13 +1642,13 @@ const THREADS = [
       return true; }},
     {when:()=>S.repute>=34, run(){
       repute(6); S.flags.seal=true;
-      post("gold","<em>A robe of honour.</em> At the spring audience you are given a robe and the right to a seal. Tolls on the Zarafshan road are waived for goods under your mark.",["+6 repute"]);
+      post("gold","<em>A robe of honour.</em> At the spring audience you are given a robe and the right to a seal. Tolls on your own roads are waived for goods under your mark.",["+6 repute"]);
       return true; }},
     {when:()=>S.repute>=48, run(){
-      ask("Master of the merchants","The governor proposes to make you ra'is of the merchants of Samarkand: you would settle disputes, fix the weights, and answer for the whole bazaar to the citadel.",[
+      ask("Master of the merchants","The governor proposes to make you ra'is of the merchants of " + esc(startDef().seat) + ": you would settle disputes, fix the weights, and answer for the whole bazaar to the citadel.",[
         {t:"Accept the office", s:"Great repute. Some of the bazaar will never forgive it.", do(){
           repute(12); S.flags.rais=true;
-          post("gold","<em>Ra'is of the merchants.</em> You are given a stick, a seal and the enmity of every man you rule against. Your word now fixes the weights of Samarkand.");}},
+          post("gold","<em>Ra'is of the merchants.</em> You are given a stick, a seal and the enmity of every man you rule against. Your word now fixes the weights of " + esc(startDef().seat) + ".");}},
         {t:"Refuse the office", s:"Keep your hands free and your friends.", do(){
           coin(300,"Gift declining the office"); repute(3);
           post("","You refuse, and the governor — who did not want a strong ra'is either — sends three hundred ducats and calls you wise.");}}
@@ -2175,12 +2174,12 @@ function upgradeProp(id){
   if(def.rep && S.repute < def.rep){ toast("bad","Your name is not yet worth that much."); return; }
   if(propNeeds(id) && !routeOpen(propNeeds(id))){ toast("bad","You have no road there yet."); return; }
   if(!spendHand()){ toast("bad","No Hands left this turn."); return; }
-  const t = def.tiers[next];
-  coin(-cost, propName(id) + " — " + t.name);
+  const tf = tierText(id, next);
+  coin(-cost, propName(id) + " — " + tf.name);
   S.props[id] = next;
   repute(next >= def.tiers.length - 1 ? 3 : 2);
-  post("gold", "<em>" + esc(t.name) + ".</em> " + esc(propName(id)) + " stands finished. " + esc(t.note));
-  toast("good", t.name + " completed.");
+  post("gold", "<em>" + esc(tf.name) + ".</em> " + esc(propName(id)) + " stands finished. " + esc(tf.note));
+  toast("good", tf.name + " completed.");
   closeSheet(); after();
 }
 
@@ -2391,7 +2390,7 @@ const SOCIAL = [
    when(){ return S.house.some(m => !m.you && m.skill < 5 && !travelling(m)); },
    run(){ const m = S.house.filter(x => !x.you && x.skill < 5 && !travelling(x)).sort((a,b)=>a.skill-b.skill)[0];
      m.skill++;
-     post("","<em>A season of teaching.</em> " + esc(m.name) + " learns what a false weight feels like in the hand, and what a Bukharan bond is worth in Merv.",["skill " + m.skill]); }},
+     post("","<em>A season of teaching.</em> " + esc(m.name) + " learns what a false weight feels like in the hand, and what a bond is worth a long way from home.",["skill " + m.skill]); }},
   {id:"bath", name:"An afternoon in the bathhouse",
    desc:"Where the road's news is actually traded. Cheap, and sometimes worth a fortune.",
    cost:()=>25,
@@ -2720,8 +2719,8 @@ const ORIGINS = [
    desc:"A mountain guide takes your wage from the first turn, with no fee to sign.",
    apply(){ S.staff.push({id:uid("s"), type:"guide", at:null, busy:0, name:pick(STAFF_NAMES),
      loyalty:75, years:4, trusted:false, bonus:0}); }},
-  {id:"cousin", cost:7, name:"A cousin in Bukhara",
-   desc:"The counting house costs a third less, and Bukharan orders find you.",
+  {id:"cousin", cost:7, name:"A cousin at the bank",
+   desc:"The counting house costs a third less, and orders find you sooner.",
    apply(){ S.flags.cousin = true; }}
 ];
 /* Half a dozen faults. Each one hands points back and charges for them
@@ -3018,12 +3017,19 @@ function fireThread(trigger, ctx){
   return false;
 }
 
+function farthestCity(){
+  const done = farRoutes().filter(id => S.routes[id] && S.routes[id].runs > 0);
+  if(!done.length) return null;
+  const best = done.map(id => route(id)).sort((a,b) => b.turns - a.turns)[0];
+  return CITIES[best.to].name;
+}
 function checkWin(){
   if(S.over || S.flags.won) return;
   const far = farRoutes().some(id => S.routes[id] && S.routes[id].runs > 0);
   if(netWorth() >= CONFIG.winDucats && S.repute >= CONFIG.winRepute && far){
     S.over = "win";
-    post("gold","<em>Master of the Road.</em> Your mark is honoured from Tabriz to the Jade Gate, and men who have never seen your face stable their beasts in your yards.");
+    post("gold","<em>Master of the Road.</em> Your mark is honoured from " + esc(startDef().seat) + " to " +
+      esc(farthestCity()) + ", and men who have never seen your face stable their beasts in your yards.");
   }
 }
 function lose(){
@@ -3292,7 +3298,7 @@ function viewChart(){
   });
   return '<div class="chart"><div class="chart-scroll" id="chartScroll">' +
     '<svg viewBox="0 0 ' + MAP.w + ' ' + MAP.h + '" width="' + MAP.w*0.72 + '" height="' + MAP.h*0.72 + '" ' +
-    'role="img" aria-label="A chart of the roads out of Samarkand">' + g + '</svg></div>' +
+    'role="img" aria-label="A chart of the roads out of ' + esc(startDef().seat) + '">' + g + '</svg></div>' +
     '<div class="chart-key"><span><i class="k-open"></i>yours</span><span><i class="k-shut"></i>not yet</span>' +
     '<span><i class="k-out"></i>outbound</span><span><i class="k-back"></i>homeward</span>' +
     '<span><i class="k-deal"></i>an order waiting</span>' +
@@ -3486,7 +3492,7 @@ function viewEstate(){
   const built = Object.keys(PROPS).filter(id => S.props[id] > 0);
   const kept = built.filter(id => staffAt(id)).length;
   let h = banner("gate", "Your holdings",
-    built.length ? built.length + " built, " + kept + " kept" : "A ruin on the Zarafshan road") +
+    built.length ? built.length + " built, " + kept + " kept" : "Nothing built on it yet") +
     hintStrip("estate") +
     '<section class="sec"><h2>Property</h2><div class="rows">';
   Object.entries(PROPS).forEach(([id,def]) => {
@@ -3500,7 +3506,7 @@ function viewEstate(){
         (unstaffed ? '<span class="tag bad">unstaffed</span>' : '') +
         (stopped ? '<span class="tag bad">stopped</span>' : '') +
         (locked && tier===0 ? '<span class="tag">' + (def.rep ? "repute " + def.rep : "needs the road") + '</span>' : '') + '</span>' +
-      '<span class="sub">' + t.name + (next ? ' &middot; next ' + fmt(propCost(id, tier+1)) + 'd' : ' &middot; complete') + '</span></span>' +
+      '<span class="sub">' + tierText(id, tier).name + (next ? ' &middot; next ' + fmt(propCost(id, tier+1)) + 'd' : ' &middot; complete') + '</span></span>' +
       '<span class="end ' + (propIncome(id)?"pos":"") + '">' + (propIncome(id) ? "+" + propIncome(id) : "0") + '<small>per turn</small></span>' +
       '<span class="chev">›</span></button>';
   });
@@ -3665,7 +3671,8 @@ function viewOver(){
   const win = S.over === "win";
   const title = win ? "Master of the Road" : S.over === "died" ? "The house dies with you" : "The house is broken";
   const body = win
-    ? "You took a ruined serai with a dry well and made it the hinge of a road that runs from Tabriz to the Jade Gate. Your mark is honoured in cities you will never see."
+    ? "You took a ruin with nothing in it and made it the hinge of a road that runs from " + esc(startDef().seat) +
+      " to " + esc(farthestCity() || "the far end of the road") + ". Your mark is honoured in cities you will never see."
     : S.over === "died"
     ? "There was nobody of an age to take the seal. What you built is divided among men who did not build it."
     : "The creditors took the serai, the beasts and the godown. What is left is the road you came in by.";
@@ -3777,7 +3784,8 @@ function sheetProp(id){
   const lockRep = def.rep && S.repute < def.rep;
   const lockRoute = propNeeds(id) && !routeOpen(propNeeds(id));
   const spare = S.staff.filter(x => x.type === def.staff && x.at !== id);
-  let h = '<h3>' + propName(id) + '</h3><p class="sub">' + t.name + ' &mdash; ' + (t.note || "Not yet built.") + '</p>' +
+  const tf = tierText(id, tier);
+  let h = '<h3>' + propName(id) + '</h3><p class="sub">' + tf.name + ' &mdash; ' + (tf.note || "Not yet built.") + '</p>' +
     '<div class="panel mb">' +
     '<div class="kv"><span class="k">Income each turn</span><span class="v ' + (propIncome(id)?"pos":"") + '">' + (propIncome(id)?"+"+propIncome(id):"none") + '</span></div>' +
     (t.cap ? '<div class="kv"><span class="k">Warehouse space</span><span class="v">+' + t.cap + ' loads</span></div>' : '') +
@@ -3793,10 +3801,11 @@ function sheetProp(id){
     spare.forEach(x => h += '<button class="btn ghost mb" data-a="assign" data-v="' + x.id + '|' + id + '">Post ' + esc(x.name) + ' here</button>');
   }
   if(next){
+    const nf = tierText(id, tier+1);
     const cost = propCost(id, tier+1);
     const blocked = lockRep ? "Repute " + def.rep + " required" : lockRoute ? "You have no road to " + CITIES[propCity(id)].name : null;
-    h += '<div class="panel mb"><div class="kv"><span class="k"><b>' + next.name + '</b></span><span class="v gold">' + fmt(cost) + 'd</span></div>' +
-      '<p class="hint">' + (next.note || "") + ' Costs one Hand.</p></div>' +
+    h += '<div class="panel mb"><div class="kv"><span class="k"><b>' + nf.name + '</b></span><span class="v gold">' + fmt(cost) + 'd</span></div>' +
+      '<p class="hint">' + (nf.note || "") + ' Costs one Hand.</p></div>' +
       '<button class="btn" data-a="upgrade" data-v="' + id + '"' + (blocked || cost>S.ducats || hands()<1 ? " disabled" : "") + '>' +
       (blocked || (cost>S.ducats ? "Not enough ducats" : hands()<1 ? "No Hands left this turn" : "Build it · " + fmt(cost) + "d")) + '</button>';
   }else h += '<p class="hint">This property is finished. Nothing more can be built here.</p>';
@@ -3996,9 +4005,9 @@ function sheetTitle(){
       ' &middot; ' + fmt(auto.worth) + ' ducats in hand</p>' : '') +
     '<button class="btn' + (auto ? ' ghost' : '') + ' mb" data-a="t-new">A new house</button>' +
     '<button class="btn ghost mb" data-a="slots" data-v="load">Load a saved game</button>' +
-    '<button class="btn ghost" data-a="help">How to trade</button>' +
-    '<p class="hint center" style="margin-top:22px">The wars are over and the roads are open under Mongol law. ' +
-    'A caravanserai with a dry well can be had for what you have.</p>';
+    '<button class="btn ghost mb" data-a="help">How to trade</button>' +
+    installLine() +
+    '<p class="hint center" style="margin-top:22px">The wars that closed the road for a generation are over, and a merchant with a little money and a lot of nerve can take a house in Samarkand, on the Black Sea, or in Persia, and start again from nothing.</p>';
 }
 function sheetMenu(){
   return '<h3>The house</h3><p class="sub">' + esc(S.houseName) + ' &middot; ' + dateStr(S.turn) + '</p>' +
@@ -4011,6 +4020,7 @@ function sheetMenu(){
     menuRow("difficulty", "The road", DIFFICULTY[S.difficulty].name + " — how hard the seasons bite.") +
     menuRow("digest-toggle", "End-of-turn account", S.flags.noDigest ? "Not shown. Tap to show it again." : "Shown after every turn.") +
     '</div>' +
+    installLine() +
     '<button class="btn danger mb" data-a="restart">Abandon this house</button>' +
     '<button class="btn ghost" data-a="close">Back to the road</button>';
 }
@@ -4057,11 +4067,16 @@ function sheetImport(){
     '<button class="btn ghost mt" data-a="close">Back</button>';
 }
 const HELP = [
-  ["The loop","Buy cheap in the Samarkand bazaar, carry it a long way, sell dear. The further the road, the more a load fetches — but the longer your people and beasts are away, and the more can go wrong on the way."],
-  ["Hands are actions","You and your household give one Hand each per turn, and a Hand not spent is gone. Building, hiring, scouting, courting and sending a caravan each cost one. Buying and selling cost none, so trade freely."],
-  ["Staff are not Hands","Hired people take a wage and do one job — and a property with nobody keeping it earns nothing at all, however grand it is. Staff who serve long enough and loyally enough can be brought into the household, where they give a Hand like family."],
-  ["Roads wear out","Every run on a road floods that market and the prices fall back only while you are away. Working one road to death stops paying. The answer is always further out: scout the next road, and let the last one recover."],
-  ["What kills you","Three turns in the red and the creditors take everything. Empty stores mean grain at famine prices and a name that could not feed its drivers. And past fifty-five, a merchant may not see the spring — keep someone in the household old enough to take the seal."]
+  ["The loop","Buy cheap at home, carry it a long way, sell dear. The further the road, the more a load fetches — and a road just opened pays a novelty bonus on top of that, decaying with every run you make on it. Set against both: the longer your people and beasts are away, and the more can go wrong on the way."],
+  ["Your bazaar sells what your country makes","Silk and paper in Samarkand, alum and wine in Trebizond, saffron and dates in Tabriz. Everything else has to be carried in from somewhere that makes it — which is most of what a caravan is for."],
+  ["Hands are actions","You and your household give one Hand each per turn, and a Hand not spent is gone. Building, hiring, scouting, courting and sending a caravan each cost one. Buying, selling and working the cloth row cost none, so trade freely."],
+  ["Staff are not Hands","Hired people take a wage and do one job — and a property with nobody keeping it earns nothing at all, however grand it is. Serve long enough, loyally enough, and a member of staff can be brought into the household, where they give a Hand like family. Your name can only carry so many of them at your table at once."],
+  ["A road wears out, and the season matters","Every run on a road floods that market, and the price falls back only while you are away — the answer is always further out. The calendar bites too: some roads shut outright in the wrong season (a dhow does not sail against the monsoon), and even an open one is more dangerous at a bad time of year than a good one. How hard any of this bites is the difficulty you chose."],
+  ["Orders pay more than the market", "A patron will pay well over the going rate for a fixed order, delivered by a set turn — it fills itself the moment a caravan of yours reaches that city carrying enough of the goods. Miss the date and the bond has a penalty written into it."],
+  ["A marriage is a standing advantage","A dozen merchant houses along the road will consider a match, each for a bride-price and a Hand. What it brings — a road opened, a good at source price, credit that buys you a few more turns before the creditors move — outlasts the wedding, and the spouse joins your household as another pair of hands."],
+  ["The fleet is worked up, not just bought","A beast or a vehicle is upgraded one tier at a time, cheaply. Once you have owned a tier, you can buy that kind outright — for rather more than the work would have cost. A tier you have never reached cannot be bought at any price, whatever you offer."],
+  ["The other houses are not scenery","Two or three rival merchant houses trade the same roads. Every caravan they land floods a market you may have been counting on, and a strong one that has noticed you will outbid an order, poach an unhappy member of your staff, or undercut a city you both sell in."],
+  ["What kills you","Three turns in the red and the creditors take everything. Empty stores mean grain at famine prices and a name that could not feed its drivers. And past fifty-five, a merchant may not see the spring — keep someone in the household old enough to take the seal, or the house ends with you."]
 ];
 function sheetDifficulty(){
   return '<h3>The road</h3><p class="sub">How hard the seasons bite, and how much the other houses lean on you. ' +
@@ -4096,7 +4111,7 @@ function sheetRival(id){
     '<button class="btn ghost" data-a="close">Back</button>';
 }
 function sheetHelp(){
-  return '<h3>How to trade</h3><p class="sub">Five short parts. The rest you will learn from the journal.</p>' +
+  return '<h3>How to trade</h3><p class="sub">' + HELP.length + ' short parts. The rest you will learn from the journal.</p>' +
     HELP.map(([t, b]) => '<div class="panel mb"><div class="kv"><span class="k"><b>' + t + '</b></span></div>' +
       '<p class="primer" style="margin-top:6px">' + b + '</p></div>').join("") +
     '<button class="btn" data-a="close">Back</button>';
@@ -4214,7 +4229,7 @@ function sheetCreate(){
     'Buy cheap in the bazaar, carry it far, sell dear. Then buy the property that earns while you sleep.</p></div>';
 
   h += '<button class="btn" data-a="begin"' + (left < 0 || !p ? " disabled" : "") + '>' +
-    (!p ? "Choose a face first" : left < 0 ? "Too many points spent" : "Take the serai") + '</button>';
+    (!p ? "Choose a face first" : left < 0 ? "Too many points spent" : "Begin the house") + '</button>';
   return h;
 }
 function beginGame(){
@@ -4296,6 +4311,12 @@ document.addEventListener("click", e => {
       toast("", "The account is still in the menu when you want it."); break;
     case "t-continue": closeSheet(); render(); break;
     case "t-new": useStart("samarkand"); startCreate(); break;
+    case "install-app": {
+      if(!installPrompt) break;
+      const p = installPrompt; installPrompt = null;
+      p.prompt();
+      p.userChoice.then(() => { refreshSheet(); });
+      break; }
     case "cancel": cancelPlan(); after(); window.scrollTo(0,0); break;
     case "close": closeSheet(); render(); break;
     case "haggle": haggle(e, t); break;
@@ -4436,6 +4457,25 @@ const PORTRAITS = {
   m9: "data:image/webp;base64,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",
   m10: "data:image/webp;base64,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"
 };
+
+let installPrompt = null, installedAlready = false;
+const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches ||
+  window.navigator.standalone === true;
+const isIOS = () => /iP(hone|od|ad)/.test(navigator.userAgent) && !window.MSStream;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); installPrompt = e;
+  if(S && sheetOpen()) refreshSheet();
+});
+window.addEventListener("appinstalled", () => {
+  installPrompt = null; installedAlready = true;
+  if(S && sheetOpen()) refreshSheet();
+});
+function installLine(){
+  if(isStandalone() || installedAlready) return "";
+  if(installPrompt) return '<button class="btn ghost mb" data-a="install-app">Install this game on your device</button>';
+  if(isIOS()) return '<p class="hint">On an iPhone: tap Share, then "Add to Home Screen". Safari has no install button of its own — this is the real install, it just does not look like one.</p>';
+  return "";
+}
 
 /* ------------------------------------------------------------- boot -- */
 (function boot(){

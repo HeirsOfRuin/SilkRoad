@@ -2,7 +2,7 @@
   "name": "The Samarkand Ledger",
   "short_name": "Samarkand",
   "description": "A turn-based Silk Road merchant game. Build a trading house from a ruined caravanserai outside Samarkand, 1247.",
-  "id": "/samarkand-ledger/",
+  "id": ".",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
