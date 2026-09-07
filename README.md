@@ -10,8 +10,26 @@ try to turn it into a house whose mark is honoured from Tabriz to the Jade Gate.
 
 Open `index.html` in any modern browser, or serve the folder
 (`python3 -m http.server`) and hit it from a phone on the same network.
-Progress saves to `localStorage` on the device, so it survives a reload
-but does not travel between devices.
+
+**On a phone,** the game installs as a proper app: it ships a web manifest,
+icons and a service worker, so once it is served over HTTPS (there is a GitHub
+Pages workflow in `.github/workflows/pages.yml`) Chrome offers *Install app* —
+home-screen icon, full screen, and it plays with no signal at all. See
+[`docs/android.md`](docs/android.md), which also covers building a signed APK
+you can sideload.
+
+Progress autosaves to `localStorage`. Three manual save slots and a
+copy-out/paste-in text export live in the menu (the `≡` in the header), so a
+game can move between devices without a server.
+
+## The front door
+
+The game opens on a title screen — *Continue*, *A new house*, *Load*, *How to
+trade* — and the `≡` in the header reaches the same menu mid-game: save to one
+of three slots, load, copy the game out as text, paste one in, help, the
+difficulty setting, and the end-of-turn account toggle.
+
+Each tab shows one dismissible line of guidance the first time it is opened.
 
 ## Building a merchant
 
@@ -28,6 +46,16 @@ The game opens on a point-buy character sheet:
   a debt already running, a bad name that grows back slowly, a weak
   constitution, slow with figures, hard on your people, an enemy from the start.
   Three at most.
+
+You also pick **the road you mean to walk** — a difficulty with three settings,
+changeable at any time from the menu. Its main axis is how hard the seasons
+bite, and it also scales how much the rival houses lean on you:
+
+| | Seasons | Rivals |
+|---|---|---|
+| **A kind road** | Felt, but no road is ever closed | Keep to themselves |
+| **The road as it is** | Winter shuts the passes; the sea road sails only with the monsoon | Compete, and occasionally bite |
+| **A hard road** | Every country has a season that stops it | Give no quarter |
 
 Age also drives two numbers nobody writes down: a younger merchant has more
 **nerve** (less of every road's risk) and a grey head carries more **weight at a
@@ -134,6 +162,43 @@ price, credit that buys you four more turns before the creditors move, tolls
 that fall on somebody else), a line of contracts only family are offered, and
 one more pair of Hands — the spouse joins the household.
 
+## The seasons
+
+The calendar is structural, not flavour. Each terrain has a season profile —
+spring melt on the made roads, summer wells failing in the desert, winter
+closing the Pamirs, the Indian Ocean monsoon that lets a dhow sail only in
+autumn and winter. A road that is shut refuses dispatch outright; the rest is a
+multiplier on that road's own danger.
+
+A long road crosses several seasons, so the planner **averages the modifier
+across the turns the trip will span** rather than judging a run to Chang'an by
+the month it leaves in. The Roads tab names what the season is doing, and the
+planner shows it beside the risk bar.
+
+Which terrains can actually close is set by the difficulty.
+
+## The other houses
+
+Three rival merchant houses trade the same roads: Karim of the Red Ledger in
+Samarkand, the Sabirid brothers on the Oxus, and the house of Tegin Bay out of
+Turfan. They are not scenery.
+
+- Their caravans ride the chart on the same roads yours do, as hollow diamonds
+  in the house colour.
+- Every caravan they land **floods the market they sold into** — the same market
+  you were going to sell into. You feel them as margins thinning on roads you
+  share.
+- They learn new roads and grow wealthy, and the Roads tab shows each one's
+  worth against yours.
+- When one is strong enough and watching you closely, it bites: outbidding you
+  on an order, poaching a staff member whose loyalty has slipped, or undercutting
+  a city you both sell in for a few turns. Every bite writes a journal line
+  naming the house and the reason.
+
+Karim is both the first rival *and* the six-stage story thread — the arc moves
+the same object the simulation does, so buying him out actually removes a
+competitor from the map.
+
 ## Two rules that shape the whole economy
 
 - **Distance pays.** Every extra turn of road adds 16% to what a load fetches at
@@ -176,10 +241,31 @@ or an LLM in the loop. This build takes the first, at scale:
 That is not a language model, but it gives the game a memory: the rival only
 appears once you are worth undercutting, and how you finish him is your choice.
 
+## Reading the market
+
+Each good keeps sixteen turns of price history. The bazaar rows carry a
+micro-sparkline beside the price, and a good's own sheet shows the full line
+with its low, high and today — green when the price has come down since the
+window opened, madder when it has risen. Buying stops being guesswork.
+
+## The account of the turn
+
+Ending a turn fires standing income, wages, fodder, the household eating, staff
+loyalty, spoilage, caravan returns, contract deadlines, an event and a thread
+beat. A sheet now opens afterwards with all of it: the money grouped by line
+with a net figure, the stores/repute/net-worth deltas, then what happened.
+
+It needs no bookkeeping of its own — the ledger and journal are already stamped
+with the turn, so the digest is read straight off them and cannot disagree with
+them. If an event sheet is already open it steps aside and leaves a tappable
+strip instead. There is an off switch in the menu.
+
 ## Saves
 
-Progress saves to `localStorage` per device. A v1 save is migrated forward on
-load — beasts become tiered fleet units, staff gain names, years and loyalty.
+Autosave writes to `localStorage` every action. On top of that: three manual
+slots, and a copy-out/paste-in text blob (base64 JSON with the older ledger rows
+trimmed) so a game can move between devices with no server involved. v1 and v2
+saves are migrated forward on load.
 
 ## Configuration
 
@@ -215,7 +301,10 @@ caravans on the road, properties built and kept — so the art does some work.
 ## File layout
 
 - `index.html` — the whole game.
-- `art/*.webp` — the six banner crops, also embedded in the HTML.
+- `art/*.webp`, `art/faces/*.webp` — banner crops and portraits, also embedded.
+- `manifest.webmanifest`, `sw.js`, `icons/` — what makes it installable.
+- `.github/workflows/pages.yml` — publishes to GitHub Pages.
+- `docs/android.md` — installing on a phone, and building an APK.
 
 `index.html` is in sections: styles; config and content data (goods, cities,
 routes, fleet lines, properties, staff); the twelve merchant houses; the trip

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0F1621">
 <meta name="description" content="Silk Road: a turn-based merchant game. Build a trading house from a ruined caravanserai outside Samarkand, 1247.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Alegreya+Sans:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -44,6 +46,26 @@ h1,h2,h3{margin:0;font-family:var(--f-disp);font-weight:700;text-wrap:balance;le
   text-transform:uppercase;color:var(--dim);margin-top:2px}
 .date{text-align:right;font-size:12px;color:var(--muted);letter-spacing:.05em;flex:none}
 .date b{display:block;font-family:var(--f-num);font-size:15px;color:var(--text);font-weight:500}
+#menuBtn{flex:none;width:38px;height:38px;margin:-4px -4px -4px 2px;border:1px solid var(--line);
+  border-radius:9px;background:var(--panel);color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
+#menuBtn:active{background:var(--panel-hi)}
+.spark{display:inline-block;vertical-align:middle;overflow:visible}
+.sparkbig{margin:8px 0 4px}
+.sparkbig svg{width:100%;height:64px}
+.digest-strip{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 14px;padding:10px 12px;
+  border-radius:var(--r);border:1px solid var(--brass-dim);background:linear-gradient(180deg,#241E10,#1A1A11);
+  cursor:pointer;text-align:left;color:inherit}
+.digest-strip:active{background:#2C2414}
+.digest-strip .dt{flex:1;font-size:13.5px;color:var(--silk)}
+.digest-strip .dv{font-family:var(--f-num);font-size:14px}
+.digest-strip .dr{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.season{margin:-6px 0 14px;font-size:12.5px;letter-spacing:.04em;color:var(--brass);
+  text-transform:lowercase;font-variant:small-caps}
+.hint-strip{display:flex;align-items:flex-start;gap:10px;margin:0 0 14px;padding:9px 11px;
+  border-radius:var(--r);border:1px solid var(--brass-dim);background:#211B0E;
+  font-size:13px;color:var(--silk)}
+.hint-strip button{flex:none;background:none;border:0;color:var(--brass);font-size:19px;
+  line-height:1;padding:0 2px;cursor:pointer}
 .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line)}
 .chip{background:var(--ground-2);padding:6px 4px 7px;text-align:center;position:relative;overflow:hidden}
 .chip .k{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
@@ -168,6 +190,9 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
 
 .scrim{position:fixed;inset:0;background:rgba(6,9,14,.72);z-index:60;display:flex;align-items:flex-end;
   justify-content:center;animation:fade .18s ease-out}
+.scrim.solid{background:var(--ground);align-items:stretch}
+.scrim.solid .sheet{border:0;border-radius:0;max-height:100dvh;
+  padding-top:calc(16px + env(safe-area-inset-top))}
 @keyframes fade{from{opacity:0}}
 .sheet{width:100%;max-width:620px;background:var(--panel);border:1px solid var(--line);
   border-radius:16px 16px 0 0;box-shadow:var(--shadow);padding:16px 15px calc(18px + env(safe-area-inset-bottom));
@@ -234,6 +259,8 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
 .chart-key i.k-back{width:8px;height:8px;border-radius:50%;background:var(--ground);
   border:2px solid var(--brass-hi)}
 .chart-key i.k-deal{width:9px;height:9px;border-radius:50%;background:none;border:2px solid var(--tile)}
+.chart-key i.k-rival{width:8px;height:8px;background:none;border:2px solid var(--madder);
+  transform:rotate(45deg);border-radius:1px}
 .banner{position:relative;margin:-14px -14px 16px;aspect-ratio:2.6/1;overflow:hidden;
   border-bottom:1px solid var(--line);background:var(--ground-2)}
 .banner img{width:100%;height:100%;object-fit:cover;display:block}
@@ -264,6 +291,7 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
     <div class="hud-top">
       <div class="house" id="houseName">The House of Yusuf<small id="houseSeat">Samarkand</small></div>
       <div class="date" id="date"><b>Spring</b>1247</div>
+      <button id="menuBtn" data-a="menu" aria-label="The house">&#9776;</button>
     </div>
     <div class="chips" id="chips"></div>
   </header>
@@ -299,12 +327,72 @@ const CONFIG = {
   satPerRun: 0.13,          // a market you work stops paying
   satDecay: 0.72,
   satCap: 0.40,
+  histLen: 16,             // turns of price the bazaar remembers
   promoteYears: 10,         // turns of service before a promotion is thinkable
   promoteLoyalty: 70,
   winDucats: 20000, winRepute: 60,
-  saveKey: "samarkand-ledger-v2"
+  saveKey: "samarkand-ledger-v3",
+  slotKey: "samarkand-ledger-slot"
 };
 const SEASONS = ["Spring","Summer","Autumn","Winter"];
+
+/* What each kind of country does to a caravan in each season. risk is a
+   multiplier on the road's own danger; shut means no column sets out. */
+const SEASON_FX = {
+  road:    {Spring:{risk:1.20, shut:true, note:"the melt has the fords and the made roads are mud"}, Summer:{risk:1.00},
+            Autumn:{risk:0.88, note:"dry roads and full barns"}, Winter:{risk:1.12, note:"short days"}},
+  desert:  {Spring:{risk:0.92, note:"the good season for a crossing"}, Summer:{risk:1.45, shut:true, note:"the wells go in the heat"},
+            Autumn:{risk:0.95}, Winter:{risk:1.25, note:"nights that kill beasts"}},
+  mountain:{Spring:{risk:1.30, note:"meltwater and rockfall"}, Summer:{risk:0.85, note:"the passes are open"},
+            Autumn:{risk:1.10, note:"snow comes early up there"}, Winter:{risk:2.20, shut:true, note:"the passes are shut until the thaw"}},
+  sea:     {Spring:{risk:1.35, shut:true, note:"the monsoon is against you"}, Summer:{risk:1.30, shut:true, note:"no master will sail into it"},
+            Autumn:{risk:0.90, note:"the wind stands fair for the Indies"}, Winter:{risk:0.95, note:"the sailing season"}}
+};
+/* Three roads to walk. The seasons are the axis; the rivals lean on it too. */
+const DIFFICULTY = {
+  kind:{ id:"kind", name:"A kind road",      blurb:"The seasons are felt but never close a road. Rivals keep to themselves.",
+         shut:false, sharp:0.45, rivalHeat:0.5 },
+  road:{ id:"road", name:"The road as it is", blurb:"Winter shuts the passes; the sea road sails only with the monsoon. Rivals compete and occasionally bite.",
+         shut:["mountain","sea"], sharp:1, rivalHeat:1 },
+  hard:{ id:"hard", name:"A hard road",       blurb:"Every country has a season that stops it, and the other houses give no quarter.",
+         shut:["mountain","sea","desert","road"], sharp:1.45, rivalHeat:1.7 }
+};
+const diff = () => DIFFICULTY[(S && S.difficulty) || "road"] || DIFFICULTY.road;
+const seasonShut = terrain => {
+  const d = diff(); if(!d.shut) return false;
+  return d.shut.indexOf(terrain) >= 0;
+};
+function seasonFx(terrain, turn){
+  const t = SEASON_FX[terrain]; if(!t) return {risk:1};
+  return t[seasonOf(turn)] || {risk:1};
+}
+/* A long road crosses several seasons, so judge it by all of them, not by
+   the month it leaves in. */
+function seasonRiskMult(terrain, startTurn, turns){
+  const sharp = diff().sharp;
+  let sum = 0;
+  for(let i = 0; i < Math.max(1, turns); i++){
+    const m = seasonFx(terrain, startTurn + i).risk || 1;
+    sum += 1 + (m - 1) * sharp;
+  }
+  return sum / Math.max(1, turns);
+}
+/* Whether a column may set out at all is decided by the season it leaves in. */
+function seasonBlocks(r, turn){
+  if(!seasonShut(r.terrain)) return null;
+  const fx = seasonFx(r.terrain, turn === undefined ? S.turn : turn);
+  return fx.shut ? (fx.note || "The season is against you") : null;
+}
+function seasonLine(){
+  const parts = [];
+  ["mountain","sea","desert","road"].forEach(t => {
+    const fx = seasonFx(t, S.turn);
+    if(seasonShut(t) && fx.shut) parts.push(t === "sea" ? "the sea road waits for the monsoon" : "the " + t + " roads are shut");
+    else if(fx.note && fx.risk >= 1.2) parts.push(fx.note);
+    else if(fx.note && fx.risk <= 0.92) parts.push(fx.note);
+  });
+  return seasonOf(S.turn) + (parts.length ? " — " + parts.slice(0,2).join(", ") : "");
+}
 
 /* ---------------------------------------------------------- goods ---- */
 const GOODS = {
@@ -480,6 +568,91 @@ const ROLES = {
   road:   {name:"Road master",    desc:"-15% of the risk on every caravan. Gives no Hand."},
   market: {name:"Market factor",  desc:"-10% on everything you buy. Gives no Hand."}
 };
+
+/* =====================================================================
+   THE OTHER HOUSES — three rivals who work the same roads. They are not
+   scenery: their caravans are on the chart, their arrivals flood the
+   markets you were going to sell into, and when they are strong enough
+   they take things from you by name.
+   Karim is the first of them, and the story thread moves this same object.
+   ===================================================================== */
+const RIVALS = [
+  {id:"karim", name:"Karim of the Red Ledger", culture:"Bukharan", seat:"Samarkand",
+   colour:"#C4544A", roads:["bukhara","merv","balkh"],
+   note:"His ledger is bound in red leather and his father was factor to the last Khwarazmshah. He is two streets away and he counts your beasts."},
+  {id:"sabir", name:"The Sabirid brothers", culture:"Khwarazmian", seat:"Urgench",
+   colour:"#6B87DE", roads:["urgench","bukhara","merv"],
+   note:"Three brothers and one purse, with barges on the Oxus and no interest at all in the eastern roads."},
+  {id:"tegin", name:"The house of Tegin Bay", culture:"Uyghur", seat:"Turfan",
+   colour:"#35A79C", roads:["kashgar","turfan","khotan"],
+   note:"Turfan silk, a cousin in the tax office, and the patience of a family that has done this for two hundred years."}
+];
+const rivalDef = id => RIVALS.find(r => r.id === id);
+const rivalOf  = id => (S.rivals || []).find(r => r.id === id);
+function seedRivals(){
+  S.rivals = RIVALS.map(d => ({id:d.id, wealth:irnd(380, 900), routes:d.roads.slice(), out:[], heat:0}));
+}
+/* their caravans crowd the same markets yours do */
+function rivalsTurn(){
+  const d = diff();
+  if(!Array.isArray(S.rivals)) seedRivals();
+  S.rivals.forEach(rv => {
+    rv.out = (rv.out || []).filter(c => {
+      if(c.due > S.turn) return true;
+      const rec = S.routes[c.rid] || (S.routes[c.rid] = {open:false, runs:0, sat:0});
+      rec.sat = (rec.sat || 0) + CONFIG.satPerRun * 0.7 * d.rivalHeat;   // the market they just sold into
+      rv.wealth += irnd(35, 80) + route(c.rid).turns * 12;
+      return false;
+    });
+    if(rv.wealth > 1400 && rv.routes.length < 5 && chance(0.12)){
+      const cand = ROUTES.filter(r => rv.routes.indexOf(r.id) < 0 && r.turns <= 8);
+      if(cand.length) rv.routes.push(pick(cand).id);
+    }
+    if(rv.out.length < 2 && rv.routes.length && chance(0.42 * d.rivalHeat)){
+      const rid = pick(rv.routes), r = route(rid);
+      rv.out.push({rid, out:S.turn, due:S.turn + r.turns});
+    }
+    rv.heat = clamp((rv.heat || 0) + (S.repute > 28 ? 0.06 : 0.02) * d.rivalHeat, 0, 1);
+  });
+  if(S.undercut && S.undercut.until <= S.turn) S.undercut = null;
+  if(!sheetOpen() && chance(0.20 * d.rivalHeat)) rivalBite();
+}
+/* at most one of these a turn, and every one of them says who and why */
+function rivalBite(){
+  const able = (S.rivals || []).filter(r => r.heat > 0.3 && r.wealth > 700);
+  if(!able.length) return;
+  const rv = able.sort((a,b) => b.wealth - a.wealth)[0], d = rivalDef(rv.id);
+  const moves = [];
+  if(S.offers.length) moves.push("offer");
+  if(S.staff.some(x => !x.trusted && x.loyalty < 40)) moves.push("poach");
+  const shared = ROUTES.filter(r => routeOpen(r.id) && rv.routes.indexOf(r.id) >= 0);
+  if(shared.length && !S.undercut) moves.push("undercut");
+  if(!moves.length) return;
+  const m = pick(moves);
+  rv.heat = clamp(rv.heat - 0.35, 0, 1);
+  if(m === "offer"){
+    const o = pick(S.offers);
+    S.offers = S.offers.filter(x => x !== o);
+    rv.wealth += Math.round(o.qty * o.pay * 0.2);
+    post("bad","<em>Outbid.</em> " + esc(d.name) + " has taken the order for " + o.qty + " loads of " +
+      GOODS[o.good].short.toLowerCase() + " to " + CITIES[o.city].name + ", at a price you would have lost money on.",
+      ["an order gone"]);
+  }else if(m === "poach"){
+    const st = pick(S.staff.filter(x => !x.trusted && x.loyalty < 40));
+    S.staff = S.staff.filter(x => x !== st);
+    repute(-1);
+    post("bad","<em>" + esc(st.name) + " is gone.</em> " + esc(d.name) + " offered better terms, and your " +
+      esc(STAFF[st.type].name.toLowerCase()) + " took them. He knew your stages and your margins.",
+      ["-1 " + STAFF[st.type].name.toLowerCase()]);
+  }else{
+    const r = pick(shared);
+    S.undercut = {city:r.to, until:S.turn + irnd(3,5), by:rv.id};
+    post("bad","<em>Undercut at " + CITIES[r.to].name + ".</em> " + esc(d.name) +
+      " is selling below cost there to make a point of it. Your prices in that market will not hold for a few turns.",
+      ["-18% at " + CITIES[r.to].name]);
+  }
+}
+const undercutAt = city => (S.undercut && S.undercut.city === city) ? 0.82 : 1;
 
 /* =====================================================================
    THE MERCHANT HOUSES — a dozen matches, each with a different world
@@ -972,7 +1145,7 @@ const EVENTS = [
     S.stores = Math.max(0, S.stores-n);
     return {kind:"bad", text:"A hard freeze. The beasts eat double and the fodder-sellers know it.", d:["-"+n+" stores"]};
   }},
-  {id:"passes", w:5, when:()=>seasonOf(S.turn)==="Winter" && !hasIssue("snowbound") && ROUTES.some(r=>routeOpen(r.id)&&r.terrain==="mountain"), run(){
+  {id:"passes", w:5, when:()=>seasonOf(S.turn)==="Autumn" && !seasonShut("mountain") && !hasIssue("snowbound") && ROUTES.some(r=>routeOpen(r.id)&&r.terrain==="mountain"), run(){
     addIssue("snowbound");
     return {kind:"bad", text:"<em>The passes are shut.</em> Snow came a month early to the Pamirs and everything over the top waits for the thaw."};
   }},
@@ -1167,6 +1340,7 @@ const EVENTS = [
 const THREADS = [
   {id:"rival", name:"Karim of the Red Ledger", stages:[
     {when:()=>netIncome()>=18 || S.repute>=16, run(){
+      const k = rivalOf("karim"); if(k){ k.heat = clamp(k.heat + 0.4, 0, 1); k.wealth += 250; }
       post("bad","<em>A rival takes notice.</em> Karim ibn Dawud, whose ledger is bound in red leather and whose father was factor to the last Khwarazmshah, asks in the cloth row who exactly you are.");
       return true; }},
     {when:()=>true, run(){
@@ -1184,6 +1358,7 @@ const THREADS = [
           post("","You sign. It is a quieter world and a smaller one. The western markets will not pay you what they pay him.");}},
         {t:"Refuse him", s:"He will make you regret it. You may make it back.", do(){
           S.flags.feud=true; repute(3);
+          const k = rivalOf("karim"); if(k){ k.heat = 1; k.wealth += 400; }
           post("gold","You hand the bond back unsigned. His man says nothing at all on the way out, which is worse than an argument.");}}
       ]);
       return true; }},
@@ -1197,14 +1372,19 @@ const THREADS = [
         {t:"Buy him out — " + fmt(price) + "d", s:"His books, his buyers, his contracts.", do(){
           if(S.ducats<price){ toast("bad","You cannot raise it."); return; }
           coin(-price,"Bought out the House of Karim"); repute(10); S.flags.boughtRival=true;
+          const k = rivalOf("karim");
+          if(k){ k.routes.forEach(rid => { if(!S.routes[rid]) S.routes[rid] = {open:false,runs:0,sat:0}; });
+                 S.rivals = S.rivals.filter(x => x.id !== "karim"); }
           if(S.props.stall < 3) S.props.stall = Math.min(3, S.props.stall+1);
           for(let i=0;i<3;i++){ const o = makeOffer(); if(o) S.offers.push(o); }
           post("gold","<em>The red ledger changes hands.</em> You buy his book, his buyers and his lease. He signs it in front of witnesses and does not look up.");}},
         {t:"Let him fall", s:"Costs nothing. Costs something.", do(){ repute(-2);
+          S.rivals = S.rivals.filter(x => x.id !== "karim");
           post("","You let the creditors have him. Two of his drivers come to you for work and you take them. Nobody in the row thinks better of you for it.");}},
         {t:"Pay his smallest creditors", s:"-" + Math.round(price*0.3) + "d, and an enemy who owes you.", do(){
           const c = Math.round(price*0.3); if(S.ducats<c){ toast("bad","Not enough ducats."); return; }
           coin(-c,"Karim's creditors"); repute(12); S.flags.savedRival=true;
+          const k2 = rivalOf("karim"); if(k2){ k2.heat = 0; k2.wealth = Math.round(k2.wealth * 0.5); }
           post("gold","<em>An enemy in your debt.</em> You quietly settle the small men he owed — the porters, the ropemaker, the widow with the dye vats. Karim hears who did it. So does everyone else.");}}
       ]);
       return true; }}
@@ -1308,9 +1488,11 @@ let S = null;
 
 function newGame(playerName, portrait, age, sex, sonA, sonB){
   S = {
-    v:2, houseName:"The House of " + playerName.split(" ")[0], tab:"bazaar", turn:0,
+    v:3, houseName:"The House of " + playerName.split(" ")[0], tab:"bazaar", turn:0,
+    difficulty:"road", seen:{},
     ducats:CONFIG.startDucats, stores:CONFIG.startStores, repute:CONFIG.startRepute,
     goods:Object.fromEntries(GOOD_IDS.map(g=>[g,0])),
+    hist:Object.fromEntries(GOOD_IDS.map(g=>[g,[]])),
     supply:Object.fromEntries(GOOD_IDS.map(g=>[g,GOODS[g].supply])),
     props:{serai:0, stall:0, godown:0, dye:0, counting:0, depot:0, factory:0},
     staff:[],
@@ -1324,13 +1506,14 @@ function newGame(playerName, portrait, age, sex, sonA, sonB){
       {id:"m2", name:sonA, age:Math.max(6, Math.round(age*0.42)), role:"idle", at:null, skill:1, you:false, busy:0, sex:"m"},
       {id:"m3", name:sonB, age:Math.max(4, Math.round(age*0.42) - 3), role:"idle", at:null, skill:1, you:false, busy:0, sex:"m"}
     ],
-    origins:[], marriages:[], offers:[], contracts:[], issues:[],
+    origins:[], marriages:[], offers:[], contracts:[], issues:[], rivals:[], undercut:null,
     haggles:CONFIG.hagglesBase,
     ledger:[], journal:[], threads:{}, flags:{}, debtTurns:0,
     stat:{earned:0, spent:0, tripsDone:0, tripsLost:0, taps:0, deals:0, dealsLate:0},
     over:null, plan:null
   };
   S.threads = Object.fromEntries(THREADS.map(t=>[t.id,{stage:0, cool:0, done:false}]));
+  seedRivals();
   addUnit("camel",0); addUnit("camel",0);
   post("gold","You take possession of a ruined caravanserai a half-day east of Samarkand. The well is dry, the gate is off its hinges, and the road outside carries a hundred laden beasts a day.");
   return S;
@@ -1338,15 +1521,47 @@ function newGame(playerName, portrait, age, sex, sonA, sonB){
 
 /* ------------------------------------------------------ persistence -- */
 function save(){ try{ localStorage.setItem(CONFIG.saveKey, JSON.stringify(S)); }catch(e){} }
-function wipe(){ try{ localStorage.removeItem(CONFIG.saveKey); localStorage.removeItem("samarkand-ledger-v1"); }catch(e){} }
+function wipe(){ try{ localStorage.removeItem(CONFIG.saveKey); localStorage.removeItem("samarkand-ledger-v2");
+  localStorage.removeItem("samarkand-ledger-v1"); }catch(e){} }
 function load(){
   try{
     const raw = localStorage.getItem(CONFIG.saveKey);
-    if(raw){ const o = JSON.parse(raw); if(o && o.v === 2){ S = o; return repair(); } }
+    if(raw){ const o = JSON.parse(raw); if(o && o.v === 3){ S = o; return repair(); } }
+    const v2 = localStorage.getItem("samarkand-ledger-v2");
+    if(v2){ const o = JSON.parse(v2); if(o && o.v === 2){ S = o; S.v = 3; return repair(); } }
     const old = localStorage.getItem("samarkand-ledger-v1");
     if(old){ const o = JSON.parse(old); if(o && o.v === 1) return migrate(o); }
   }catch(e){}
   return false;
+}
+/* a saved game, summarised for a list */
+function stateCard(o){
+  const you = (o.house || []).find(m => m.you) || {name:"a merchant", age:"?"};
+  return {name:you.name, when:dateStr(o.turn || 0), worth:o.ducats || 0, turn:(o.turn||0)+1};
+}
+const slotKey = i => CONFIG.slotKey + i;
+function slotRead(i){
+  try{ const raw = localStorage.getItem(slotKey(i)); if(!raw) return null;
+    const o = JSON.parse(raw); return o && o.v === 3 ? o : null; }catch(e){ return null; }
+}
+function slotWrite(i){
+  try{ localStorage.setItem(slotKey(i), JSON.stringify(S)); return true; }
+  catch(e){ return false; }
+}
+/* the same game as a block of text, so it can leave the device */
+function exportText(){
+  const o = JSON.parse(JSON.stringify(S));
+  o.ledger = (o.ledger || []).slice(-60);
+  o.journal = (o.journal || []).slice(0, 40);
+  try{ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+  catch(e){ return ""; }
+}
+function importText(txt){
+  try{
+    const o = JSON.parse(decodeURIComponent(escape(atob(txt.replace(/\s+/g,"")))));
+    if(!o || o.v !== 3 || !Array.isArray(o.house)) return null;
+    return o;
+  }catch(e){ return null; }
 }
 function repair(){                       // forward-compatible defaults
   S.threads = S.threads || {};
@@ -1354,6 +1569,13 @@ function repair(){                       // forward-compatible defaults
   ["marriages","offers","contracts","issues","fleet","caravans","staff","origins"].forEach(k => { if(!Array.isArray(S[k])) S[k] = []; });
   S.fleetTier = S.fleetTier || {camel:0, mule:0, boat:0};
   S.stat = Object.assign({earned:0,spent:0,tripsDone:0,tripsLost:0,taps:0,deals:0,dealsLate:0}, S.stat||{});
+  S.seen = S.seen || {};
+  if(!Array.isArray(S.rivals) || !S.rivals.length) seedRivals();
+  S.rivals.forEach(r => { r.out = r.out || []; r.routes = r.routes || (rivalDef(r.id)||{roads:[]}).roads.slice(); });
+  S.hist = S.hist || {};
+  GOOD_IDS.forEach(g => { if(!Array.isArray(S.hist[g]) || !S.hist[g].length) S.hist[g] = [buyPrice(g)]; });
+  S.difficulty = S.difficulty || "road";
+  S.v = 3;
   return true;
 }
 function migrate(o){                     // a v1 house keeps its road
@@ -1589,7 +1811,7 @@ function saleAt(rid, g){
   const silk = g === "silk" ? (PROPS.dye.tiers[S.props.dye].silk || 0) : 0;
   const house = b.sell[g] || 0;
   return cityPrice(r.to, g) * distancePremium(r) * sellMult() * (1 + firstRunBonus(rid)) *
-         (1 - satOf(rid)) * (1 + silk + house);
+         (1 - satOf(rid)) * (1 + silk + house) * undercutAt(r.to);
 }
 
 /* ----------------------------------------------------------- risk ---- */
@@ -1611,12 +1833,13 @@ function riskMod(terrain){
   if(terrain && b.riskTerrain[terrain]) r += b.riskTerrain[terrain];
   return Math.min(r, 0.72);
 }
-function routeRisk(rid, extraCut){
+function routeRisk(rid, extraCut, startTurn){
   const r = route(rid), e = issueEff();
   const cut = Math.min(0.82, riskMod(r.terrain) + (extraCut || 0));
   let up = 1 + e.risk;
   e.routes.forEach(x => { if(x.rid === rid) up += x.up; });
-  return clamp(r.risk * (1 - cut) * up, 0.02, 0.85);
+  up *= seasonRiskMult(r.terrain, startTurn === undefined ? S.turn : startTurn, r.turns);
+  return clamp(r.risk * (1 - cut) * up, 0.02, 0.90);
 }
 const routeOpen = rid => !!(S.routes[rid] && S.routes[rid].open);
 function routeBlocked(r){
@@ -1624,6 +1847,8 @@ function routeBlocked(r){
   if(r.needs === "guide"   && !hasStaff("guide") && !b.guide) return "Needs a mountain guide";
   if(r.needs === "captain" && (!hasStaff("captain") || !S.fleet.some(u => u.line === "boat"))) return "Needs a dhow and a captain";
   if(e.blockTerrain === r.terrain) return "The passes are shut";
+  const sb = seasonBlocks(r);
+  if(sb) return sb.charAt(0).toUpperCase() + sb.slice(1);
   if(e.cities.indexOf(r.to) >= 0) return "Sickness at " + CITIES[r.to].name;
   if(e.noDispatch) return "The yard has stopped";
   return null;
@@ -2266,6 +2491,10 @@ function endTurn(){
   if(S.over) return;
   if(sheetOpen()) return;
   const e = issueEff();
+  /* the ledger and the journal are already stamped; remembering where they
+     stood is enough to know exactly what this turn did. */
+  const mark = {turn:S.turn, li:S.ledger.length, ji:S.journal.length,
+                ducats:S.ducats, stores:S.stores, repute:S.repute, worth:netWorth()};
 
   /* 1. standing business */
   const gross = grossIncome() + yamIncome();
@@ -2364,12 +2593,20 @@ function endTurn(){
     return true;
   });
 
+  /* 8b. the other houses work their own roads */
+  rivalsTurn();
+
   /* 9. the market drifts, and the roads recover */
   GOOD_IDS.forEach(g => {
     const drift = rnd(-0.07, 0.07) + (GOODS[g].supply - S.supply[g]) * 0.12;
     S.supply[g] = clamp(S.supply[g] + drift, 0.55, 2.1);
   });
   Object.values(S.routes).forEach(r => { if(r.sat) r.sat *= CONFIG.satDecay; });
+  GOOD_IDS.forEach(g => {
+    const h = S.hist[g] || (S.hist[g] = []);
+    h.push(buyPrice(g));
+    if(h.length > CONFIG.histLen) h.splice(0, h.length - CONFIG.histLen);
+  });
 
   /* 10. one thing happens, then one beat of a longer story */
   if(!sheetOpen() && chance(0.72)) rollEvent();
@@ -2389,9 +2626,71 @@ function endTurn(){
       (grace - S.debtTurns) + " more turn" + (grace - S.debtTurns === 1 ? "" : "s") + " before they take the serai.");
   }else S.debtTurns = 0;
 
+  buildDigest(mark);
   checkWin();
   after();
-  if(!sheetOpen()) toast("", dateStr(S.turn) + " — " + hands() + " Hand" + (hands()===1?"":"s") + " to spend.");
+  if(S.over) return;
+  if(S.digest && !S.flags.noDigest && !sheetOpen()){ S.digestPending = false; openSheet(sheetDigest); render(); }
+  else if(!sheetOpen()) toast("", dateStr(S.turn) + " — " + hands() + " Hand" + (hands()===1?"":"s") + " to spend.");
+}
+
+/* =====================================================================
+   THE ACCOUNT OF THE TURN — read straight off the ledger and the
+   journal, so it can never disagree with them.
+   ===================================================================== */
+function buildDigest(m){
+  const rows = S.ledger.slice(m.li);
+  const beats = S.journal.slice(0, S.journal.length - m.ji);
+  const lines = {};
+  rows.forEach(r => {
+    const key = r.item.replace(/ \d+ .*$/, "").replace(/x \d+$/, "").trim();
+    lines[key] = (lines[key] || 0) + r.avere - r.dare;
+  });
+  S.digest = {
+    when: dateStr(m.turn),
+    lines: Object.entries(lines).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12),
+    ducats: S.ducats - m.ducats, stores: S.stores - m.stores,
+    repute: S.repute - m.repute, worth: netWorth() - m.worth,
+    beats: beats.map(b => ({kind:b.kind, text:b.text, deltas:b.deltas}))
+  };
+  S.digestPending = true;
+}
+function sheetDigest(){
+  const d = S.digest; if(!d) return "";
+  let h = '<h3>' + esc(d.when) + ' closes</h3>' +
+    '<p class="sub">Everything the turn did to the house, taken out of the ledger.</p>';
+  h += '<div class="panel mb">';
+  if(!d.lines.length) h += '<div class="kv"><span class="k">No money moved.</span></div>';
+  d.lines.forEach(([item, amt]) => {
+    h += '<div class="kv"><span class="k">' + esc(item) + '</span>' +
+      '<span class="v ' + (amt >= 0 ? "pos" : "neg") + '">' + sgn(amt) + '</span></div>';
+  });
+  h += '<div class="kv"><span class="k"><b>Ducats</b></span><span class="v ' + (d.ducats>=0?"pos":"neg") +
+    '"><b>' + sgn(d.ducats) + '</b></span></div>' +
+    '<div class="kv"><span class="k">Stores</span><span class="v ' + (d.stores>=0?"pos":"neg") + '">' + sgn(d.stores) + '</span></div>' +
+    '<div class="kv"><span class="k">Repute</span><span class="v ' + (d.repute>=0?"pos":"neg") + '">' + sgn(d.repute) + '</span></div>' +
+    '<div class="kv"><span class="k">Net worth</span><span class="v ' + (d.worth>=0?"pos":"neg") + '">' + sgn(d.worth) + '</span></div>' +
+    '</div>';
+  if(d.beats.length){
+    h += '<div class="sec"><h2>What happened</h2>';
+    d.beats.forEach(b => {
+      h += '<div class="entry ' + (b.kind||"") + '"><div class="txt">' + b.text + '</div>' +
+        (b.deltas && b.deltas.length ? '<div class="delta">' + b.deltas.map(x=>'<span>' + esc(x) + '</span>').join("") + '</div>' : "") +
+        '</div>';
+    });
+    h += '</div>';
+  }
+  return h + '<button class="btn" data-a="digest-done">' + dateStr(S.turn) + ' — ' + hands() +
+    ' Hand' + (hands()===1?"":"s") + ' to spend</button>' +
+    '<button class="btn ghost mt" data-a="digest-off">Stop showing this each turn</button>';
+}
+function digestStrip(){
+  if(!S.digestPending || !S.digest) return "";
+  const d = S.digest;
+  return '<button class="digest-strip" data-a="digest-open">' +
+    '<span class="dt">' + esc(d.when) + ' closed</span>' +
+    '<span class="dv ' + (d.ducats>=0?"pos":"neg") + '">' + sgn(d.ducats) + 'd</span>' +
+    '<span class="dr">review</span></button>';
 }
 
 /* the price of starting old */
@@ -2531,14 +2830,33 @@ function render(){
   const old = document.getElementById("chartScroll");
   if(old) chartScroll = old.scrollLeft;
   if(S.over){ view.innerHTML = viewOver(); return; }
-  view.innerHTML =
+  view.innerHTML = digestStrip() + (
     S.tab === "bazaar" ? viewBazaar() :
     S.tab === "roads"  ? (S.plan ? viewPlan() : viewRoads()) :
     S.tab === "estate" ? viewEstate() :
-    S.tab === "house"  ? viewHouse() : viewLedger();
+    S.tab === "house"  ? viewHouse() : viewLedger());
   const el = document.getElementById("chartScroll");
   if(el) el.scrollLeft = chartScroll !== null ? chartScroll
     : Math.max(0, MAP.at.samarkand.x * 0.72 - el.clientWidth / 2);   // open on Samarkand
+}
+
+/* A sparkline: no axes, no library, just where the price has been. */
+function spark(vals, w, h, thick){
+  if(!vals || vals.length < 2) return '<svg width="' + w + '" height="' + h + '"></svg>';
+  const lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  const span = (hi - lo) || 1, pad = 1.5;
+  const pts = vals.map((v, i) => {
+    const x = pad + i * (w - pad*2) / (vals.length - 1);
+    const y = h - pad - ((v - lo) / span) * (h - pad*2);
+    return x.toFixed(1) + "," + y.toFixed(1);
+  });
+  const last = pts[pts.length-1].split(",");
+  const rising = vals[vals.length-1] >= vals[0];
+  return '<svg class="spark" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' +
+    '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + (rising ? "var(--madder)" : "var(--tile)") +
+    '" stroke-width="' + (thick || 1.5) + '" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<circle cx="' + last[0] + '" cy="' + last[1] + '" r="' + (thick ? 3 : 2) + '" fill="' +
+    (rising ? "var(--madder)" : "var(--tile)") + '"/></svg>';
 }
 
 /* ------------------------------------------------------------ bazaar - */
@@ -2554,6 +2872,7 @@ function viewBazaar(){
   const need = storesNeed(), room = capacity() - held();
   let h = banner("bazaar", "Samarkand, the cloth row",
       held() ? held() + " of " + capacity() + " loads in the godown" : "The godown is empty") +
+    hintStrip("bazaar") +
     '<section class="sec"><button class="haggle" data-a="haggle">' +
       '<span class="hd">Work the cloth row</span>' +
       '<span class="hs">Talk up a bolt, shave a weight, take a broker\'s cut. Costs no Hand.</span>' +
@@ -2582,7 +2901,8 @@ function viewBazaar(){
       '<span class="glyph">' + GOODS[g].g + '</span>' +
       '<span class="main"><span class="t">' + GOODS[g].short + trend + wanted + '</span>' +
       '<span class="sub">' + (best ? "Best known: " + best.p + "d at " + best.city : "No road opened yet") + '</span></span>' +
-      '<span class="end gold">' + bp + 'd<small>' + (owned ? "hold " + owned : "buy") + '</small></span>' +
+      '<span class="end gold">' + spark(S.hist[g], 46, 15) + '<br>' + bp + 'd<small>' +
+        (owned ? "hold " + owned : "buy") + '</small></span>' +
       '<span class="chev">›</span></button>';
   });
   return h + '</div></section>';
@@ -2654,6 +2974,21 @@ function viewChart(){
       'paint-order="stroke" stroke="var(--ground-2)" stroke-width="4.5" stroke-linejoin="round" ' +
       'fill="var(--brass-hi)" font-family="var(--f-ui)" font-weight="700">' + esc(c.leaderName.split(" ")[0]) + '</text>';
   });
+  // the other houses, on the same roads
+  (S.rivals || []).forEach(rv => {
+    const d = rivalDef(rv.id); if(!d) return;
+    (rv.out || []).forEach(c => {
+      const r = route(c.rid); if(!r || !MAP.at[r.to]) return;
+      const p = mapPath(c.rid), frac = clamp((S.turn - c.out) / r.turns, 0, 1);
+      const pt = bezAt(p, frac > 0.5 ? (1 - frac) * 2 : frac * 2);
+      g += '<g data-a="rival" data-v="' + rv.id + '" style="cursor:pointer">' +
+        '<rect x="' + (pt.x - 5.5).toFixed(1) + '" y="' + (pt.y - 5.5).toFixed(1) + '" width="11" height="11" ' +
+        'transform="rotate(45 ' + pt.x.toFixed(1) + ' ' + pt.y.toFixed(1) + ')" fill="var(--ground)" stroke="' +
+        d.colour + '" stroke-width="2.2" opacity=".95"/>' +
+        '<circle cx="' + pt.x.toFixed(1) + '" cy="' + pt.y.toFixed(1) + '" r="20" fill="transparent"/>' +
+        '<title>' + esc(d.name) + '</title></g>';
+    });
+  });
   // towns
   Object.entries(MAP.at).forEach(([city, m]) => {
     const home = city === "samarkand";
@@ -2682,16 +3017,18 @@ function viewChart(){
     'role="img" aria-label="A chart of the roads out of Samarkand">' + g + '</svg></div>' +
     '<div class="chart-key"><span><i class="k-open"></i>yours</span><span><i class="k-shut"></i>not yet</span>' +
     '<span><i class="k-out"></i>outbound</span><span><i class="k-back"></i>homeward</span>' +
-    '<span><i class="k-deal"></i>an order waiting</span></div></div>';
+    '<span><i class="k-deal"></i>an order waiting</span>' +
+    '<span><i class="k-rival"></i>another house</span></div></div>';
 }
 
 /* ------------------------------------------------------------- roads - */
 function viewRoads(){
   const open = ROUTES.filter(r => routeOpen(r.id)).length;
-  let h = viewChart() +
+  let h = viewChart() + hintStrip("roads") +
     '<p class="lede">' + (S.caravans.length
       ? S.caravans.length + " caravan" + (S.caravans.length===1?"":"s") + " on the road, " + open + " road" + (open===1?"":"s") + " open to you."
-      : open + " road" + (open===1?"":"s") + " open to you. Drag the chart east to see how far the road goes.") + '</p>';
+      : open + " road" + (open===1?"":"s") + " open to you. Drag the chart east to see how far the road goes.") + '</p>' +
+    '<p class="season">' + esc(seasonLine()) + '</p>';
 
   if(S.caravans.length){
     h += '<section class="sec"><h2>On the road</h2><div class="rows">';
@@ -2724,6 +3061,25 @@ function viewRoads(){
         (o.house ? '<span class="tag gold">family</span>' : '<span class="tag">offered</span>') + '</span>' +
         '<span class="sub">' + esc(o.patron) + ' &middot; ' + o.span + ' turns</span></span>' +
         '<span class="end gold">' + o.pay + 'd<small>the load</small></span><span class="chev">›</span></button>';
+    });
+    h += '</div></section>';
+  }
+
+  if((S.rivals||[]).length){
+    h += '<section class="sec"><h2>The other houses</h2><div class="rows">';
+    S.rivals.slice().sort((a,b)=>b.wealth-a.wealth).forEach(rv => {
+      const d = rivalDef(rv.id); if(!d) return;
+      const mine = netWorth(), lead = rv.wealth > mine;
+      const busy = (rv.out||[]).length;
+      h += '<button class="row" data-a="rival" data-v="' + rv.id + '">' +
+        '<span class="glyph" style="border-color:' + d.colour + ';color:' + d.colour + '">' +
+        esc(d.name.replace(/^(The |)/,"").slice(0,2)) + '</span>' +
+        '<span class="main"><span class="t">' + esc(d.name) +
+        (rv.heat > 0.6 ? '<span class="tag bad">watching you</span>' : '') + '</span>' +
+        '<span class="sub">' + esc(d.seat) + ' &middot; ' + (busy ? busy + " on the road" : "nothing out") +
+        ' &middot; ' + rv.routes.length + ' roads</span></span>' +
+        '<span class="end ' + (lead ? "neg" : "pos") + '">' + fmt(rv.wealth) + '<small>' +
+        (lead ? "ahead of you" : "behind you") + '</small></span><span class="chev">›</span></button>';
     });
     h += '</div></section>';
   }
@@ -2762,6 +3118,7 @@ function viewRoads(){
 function viewPlan(){
   const p = S.plan, r = route(p.rid), cap = planCap(), loads = planLoads();
   const val = planValue(), risk = planRisk(), eCost = escortCost(p.escort, r.turns);
+  const sMult = seasonRiskMult(r.terrain, S.turn, r.turns);
   const invested = GOOD_IDS.reduce((n,g)=>n + p.cargo[g]*buyPrice(g), 0);
   const deals = contractsFor(r.to);
 
@@ -2829,6 +3186,9 @@ function viewPlan(){
     '<div class="kv"><span class="k">That market is</span><span class="v ' + (satOf(r.id)>0.2?"neg":"") + '">' + satWord(r.id) +
       (satOf(r.id)>0.02 ? " (-" + Math.round(satOf(r.id)*100) + "%)" : "") + '</span></div>' +
     '<div class="kv"><span class="k">Expected profit</span><span class="v ' + (val-invested-eCost>=0?"pos":"neg") + '">' + sgn(val-invested-eCost) + 'd</span></div>' +
+    '<div class="kv"><span class="k">The season</span><span class="v ' + (sMult > 1.06 ? "neg" : sMult < 0.96 ? "pos" : "") + '">' +
+      esc(seasonFx(r.terrain, S.turn).note || seasonOf(S.turn)) +
+      (Math.abs(sMult - 1) > 0.03 ? " (" + (sMult > 1 ? "+" : "") + Math.round((sMult-1)*100) + "%)" : "") + '</span></div>' +
     '<div class="kv"><span class="k">Chance of trouble</span><span class="v neg">' + pct(risk) + '</span></div>' +
     '<div class="bar risk"><i style="width:' + Math.round(risk*100) + '%"></i></div></div>';
 
@@ -2843,6 +3203,7 @@ function viewEstate(){
   const kept = built.filter(id => staffAt(id)).length;
   let h = banner("gate", "Your holdings",
     built.length ? built.length + " built, " + kept + " kept" : "A ruin on the Zarafshan road") +
+    hintStrip("estate") +
     '<section class="sec"><h2>Property</h2><div class="rows">';
   Object.entries(PROPS).forEach(([id,def]) => {
     const tier = S.props[id], t = def.tiers[tier], next = def.tiers[tier+1];
@@ -2898,7 +3259,7 @@ function viewEstate(){
 function viewHouse(){
   const out = S.house.filter(travelling).length;
   let h = banner("tent", esc(S.houseName),
-    out ? out + " of the house on the road" : "All of the house at home");
+    out ? out + " of the house on the road" : "All of the house at home") + hintStrip("house");
 
   if(S.issues.length){
     h += '<section class="sec"><h2>Matters outstanding</h2><div class="rows">';
@@ -2970,7 +3331,7 @@ function viewHouse(){
 /* ------------------------------------------------------------ ledger - */
 function viewLedger(){
   const g = grossIncome(), w = wages(), u = upkeep(), yam = yamIncome(), dr = issueEff().drain;
-  let h = banner("river", "Dare e avere", fmt(netWorth()) + " ducats, all told") +
+  let h = banner("river", "Dare e avere", fmt(netWorth()) + " ducats, all told") + hintStrip("ledger") +
     '<section class="sec"><h2>Master of the Road</h2><div class="panel">';
   goalProgress().forEach(p => {
     h += '<div class="kv"><span class="k">' + p.k + '</span><span class="v">' + p.now + '</span></div>' +
@@ -3039,18 +3400,26 @@ function viewOver(){
 /* =====================================================================
    SHEETS, TOASTS, INPUT
    ===================================================================== */
-let sheetRender = null, sheetQty = 1, pendingChoices = null;
+let sheetRender = null, sheetQty = 1, pendingChoices = null, sheetKind = "dismissible";
 const host = $("#sheetHost");
 const sheetOpen = () => !!sheetRender;
-function openSheet(fn, q){ sheetRender = fn; if(q !== undefined) sheetQty = q; paintSheet(); }
+/* kind "fixed" refuses the scrim: the title screen and character creation
+   have nothing behind them to go back to. */
+function openSheet(fn, q, kind){
+  sheetRender = fn; sheetKind = kind || "dismissible";
+  if(q !== undefined) sheetQty = q;
+  paintSheet();
+}
 function closeSheet(){
-  sheetRender = null; pendingChoices = null; host.innerHTML = "";
+  sheetRender = null; pendingChoices = null; sheetKind = "dismissible"; host.innerHTML = "";
   const tz = $("#toasts"); if(tz) tz.classList.remove("up");
 }
 function paintSheet(){
   const tz = $("#toasts"); if(tz) tz.classList.toggle("up", !!sheetRender);
   if(!sheetRender){ host.innerHTML = ""; return; }
-  host.innerHTML = '<div class="scrim" data-a="scrim"><div class="sheet"><div class="grab"></div>' + sheetRender() + '</div></div>';
+  host.innerHTML = '<div class="scrim' + (sheetKind === "fixed" ? " solid" : "") + '" data-a="scrim">' +
+    '<div class="sheet">' + (sheetKind === "fixed" ? "" : '<div class="grab"></div>') +
+    sheetRender() + '</div></div>';
 }
 function refreshSheet(){ if(sheetRender) paintSheet(); if(S) renderChips(); }
 
@@ -3093,7 +3462,14 @@ function sheetGood(g){
       '<span class="v ' + (p>bp?"pos":"neg") + '">' + p + 'd</span></div>';
   });
   const orders = S.contracts.filter(k => k.good === g);
+  const hs = S.hist[g] || [];
+  const lo = hs.length ? Math.min.apply(null, hs) : bp, hi = hs.length ? Math.max.apply(null, hs) : bp;
   return '<h3>' + d.name + '</h3><p class="sub">You hold ' + S.goods[g] + '. Room for ' + room + ' more loads.</p>' +
+    (hs.length > 2 ? '<div class="panel mb"><div class="kv"><span class="k">What it has cost, these ' + hs.length +
+      ' turns</span></div><div class="sparkbig">' + spark(hs, 560, 64, 2.4) + '</div>' +
+      '<div class="kv"><span class="k">Low</span><span class="v pos">' + lo + 'd</span></div>' +
+      '<div class="kv"><span class="k">High</span><span class="v neg">' + hi + 'd</span></div>' +
+      '<div class="kv"><span class="k">Today</span><span class="v gold">' + bp + 'd</span></div></div>' : '') +
     (orders.length ? '<div class="panel mb">' + orders.map(k => '<div class="kv"><span class="k">On order: ' + k.qty +
       ' to ' + CITIES[k.city].name + '</span><span class="v gold">' + k.pay + 'd</span></div>').join("") + '</div>' : '') +
     '<div class="step mb"><button data-a="q-">&minus;</button><span class="q">' + q +
@@ -3321,6 +3697,141 @@ function sheetHouse(hid){
     '<button class="btn ghost mt" data-a="close">Close</button>';
 }
 
+/* =====================================================================
+   THE FRONT DOOR — a title screen, a menu you can reach mid-game, three
+   save slots, a game as a block of text, and a page of help.
+   ===================================================================== */
+function sheetTitle(){
+  const auto = (function(){ try{ const r = localStorage.getItem(CONFIG.saveKey);
+    return r ? stateCard(JSON.parse(r)) : null; }catch(e){ return null; } })();
+  return banner("oasis", "Samarkand, spring 1247", "A ruined serai on the Zarafshan road") +
+    '<h3>The Samarkand Ledger</h3>' +
+    '<p class="sub">A trading house on the Silk Road, from a ruined caravanserai to a name they know in Chang\'an.</p>' +
+    (auto ? '<button class="btn mb" data-a="t-continue"><span class="ct">Continue</span></button>' +
+      '<p class="hint" style="margin:-4px 0 12px">' + esc(auto.name) + ' &middot; ' + esc(auto.when) +
+      ' &middot; ' + fmt(auto.worth) + ' ducats in hand</p>' : '') +
+    '<button class="btn' + (auto ? ' ghost' : '') + ' mb" data-a="t-new">A new house</button>' +
+    '<button class="btn ghost mb" data-a="slots" data-v="load">Load a saved game</button>' +
+    '<button class="btn ghost" data-a="help">How to trade</button>' +
+    '<p class="hint center" style="margin-top:22px">The wars are over and the roads are open under Mongol law. ' +
+    'A caravanserai with a dry well can be had for what you have.</p>';
+}
+function sheetMenu(){
+  return '<h3>The house</h3><p class="sub">' + esc(S.houseName) + ' &middot; ' + dateStr(S.turn) + '</p>' +
+    '<div class="rows mb">' +
+    menuRow("slots|save", "Save", "Keep this game in one of three slots.") +
+    menuRow("slots|load", "Load", "Open a game you kept.") +
+    menuRow("export", "Copy this game out", "As a block of text, to carry to another device.") +
+    menuRow("import", "Paste a game in", "Replaces the house you are playing.") +
+    menuRow("help", "How to trade", "The loop, in five short parts.") +
+    menuRow("difficulty", "The road", DIFFICULTY[S.difficulty].name + " — how hard the seasons bite.") +
+    menuRow("digest-toggle", "End-of-turn account", S.flags.noDigest ? "Not shown. Tap to show it again." : "Shown after every turn.") +
+    '</div>' +
+    '<button class="btn danger mb" data-a="restart">Abandon this house</button>' +
+    '<button class="btn ghost" data-a="close">Back to the road</button>';
+}
+function menuRow(act, title, sub){
+  const p = act.split("|");
+  return '<button class="row" data-a="' + p[0] + '"' + (p[1] ? ' data-v="' + p[1] + '"' : '') + '>' +
+    '<span class="main"><span class="t">' + title + '</span><span class="sub">' + esc(sub) + '</span></span>' +
+    '<span class="chev">›</span></button>';
+}
+function sheetSlots(mode){
+  const saving = mode === "save";
+  let h = '<h3>' + (saving ? "Save" : "Load") + '</h3><p class="sub">' +
+    (saving ? "Three slots. Saving over one cannot be undone." : "Pick a game to open.") + '</p><div class="rows mb">';
+  for(let i = 1; i <= 3; i++){
+    const o = slotRead(i), c = o ? stateCard(o) : null;
+    h += '<button class="row" data-a="' + (saving ? "slot-put" : "slot-get") + '" data-v="' + i + '"' +
+      (!saving && !o ? " disabled" : "") + '>' +
+      '<span class="glyph">' + i + '</span><span class="main">' +
+      '<span class="t">' + (c ? esc(c.name) : "Empty") + '</span>' +
+      '<span class="sub">' + (c ? esc(c.when) + " &middot; turn " + c.turn + " &middot; " + fmt(c.worth) + "d"
+        : saving ? "Nothing kept here yet" : "&mdash;") + '</span></span>' +
+      '<span class="chev">›</span></button>';
+  }
+  return h + '</div><button class="btn ghost" data-a="close">Back</button>';
+}
+function sheetExport(){
+  const txt = exportText();
+  return '<h3>Copy this game out</h3>' +
+    '<p class="sub">Everything but the older ledger rows. Paste it into a note, then paste it back in on the other device.</p>' +
+    '<textarea id="saveblob" readonly rows="5" style="width:100%;font-family:var(--f-num);font-size:11px;' +
+    'padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--ground-2);color:var(--muted);' +
+    'resize:none">' + esc(txt) + '</textarea>' +
+    '<p class="hint">' + fmt(txt.length) + ' characters.</p>' +
+    '<button class="btn mt" data-a="copyblob">Copy to the clipboard</button>' +
+    '<button class="btn ghost mt" data-a="close">Back</button>';
+}
+function sheetImport(){
+  return '<h3>Paste a game in</h3>' +
+    '<p class="sub">This replaces the house you are playing now. Copy the current one out first if you want to keep it.</p>' +
+    '<textarea id="loadblob" rows="5" placeholder="paste the block of text here" style="width:100%;' +
+    'font-family:var(--f-num);font-size:11px;padding:10px;border-radius:8px;border:1px solid var(--line);' +
+    'background:var(--ground-2);color:var(--text);resize:none"></textarea>' +
+    '<button class="btn mt" data-a="doimport">Open that game</button>' +
+    '<button class="btn ghost mt" data-a="close">Back</button>';
+}
+const HELP = [
+  ["The loop","Buy cheap in the Samarkand bazaar, carry it a long way, sell dear. The further the road, the more a load fetches — but the longer your people and beasts are away, and the more can go wrong on the way."],
+  ["Hands are actions","You and your household give one Hand each per turn, and a Hand not spent is gone. Building, hiring, scouting, courting and sending a caravan each cost one. Buying and selling cost none, so trade freely."],
+  ["Staff are not Hands","Hired people take a wage and do one job — and a property with nobody keeping it earns nothing at all, however grand it is. Staff who serve long enough and loyally enough can be brought into the household, where they give a Hand like family."],
+  ["Roads wear out","Every run on a road floods that market and the prices fall back only while you are away. Working one road to death stops paying. The answer is always further out: scout the next road, and let the last one recover."],
+  ["What kills you","Three turns in the red and the creditors take everything. Empty stores mean grain at famine prices and a name that could not feed its drivers. And past fifty-five, a merchant may not see the spring — keep someone in the household old enough to take the seal."]
+];
+function sheetDifficulty(){
+  return '<h3>The road</h3><p class="sub">How hard the seasons bite, and how much the other houses lean on you. ' +
+    'You can change this at any time.</p>' +
+    Object.values(DIFFICULTY).map(d =>
+      '<button class="choice" data-a="setdiff" data-v="' + d.id + '"' + (S.difficulty === d.id ? " disabled" : "") + '>' +
+      '<span class="ct">' + d.name + (S.difficulty === d.id ? " — current" : "") + '</span>' +
+      '<span class="cs">' + d.blurb + '</span></button>').join("") +
+    '<button class="btn ghost mt" data-a="close">Back</button>';
+}
+function sheetRival(id){
+  const d = rivalDef(id), rv = rivalOf(id);
+  if(!d || !rv) return '<h3>Gone</h3><p class="sub">That house is no longer trading.</p>' +
+    '<button class="btn ghost" data-a="close">Back</button>';
+  const shared = rv.routes.filter(r => routeOpen(r));
+  return '<h3>' + esc(d.name) + '</h3><p class="sub">' + esc(d.culture) + ' &middot; ' + esc(d.seat) + '</p>' +
+    '<p class="lede">' + esc(d.note) + '</p>' +
+    '<div class="panel mb">' +
+    '<div class="kv"><span class="k">What they are worth</span><span class="v ' +
+      (rv.wealth > netWorth() ? "neg" : "pos") + '">' + fmt(rv.wealth) + '</span></div>' +
+    '<div class="kv"><span class="k">What you are worth</span><span class="v gold">' + fmt(netWorth()) + '</span></div>' +
+    '<div class="kv"><span class="k">Roads they know</span><span class="v" style="font-family:var(--f-ui);text-align:right">' +
+      rv.routes.map(r => route(r) ? CITIES[route(r).to].name : r).join(", ") + '</span></div>' +
+    '<div class="kv"><span class="k">Roads you both work</span><span class="v ' + (shared.length ? "neg" : "") + '">' +
+      (shared.length || "none") + '</span></div>' +
+    '<div class="kv"><span class="k">On the road now</span><span class="v">' + (rv.out||[]).length + '</span></div>' +
+    '<div class="kv"><span class="k">How closely they watch you</span><span class="v ' +
+      (rv.heat > 0.6 ? "neg" : "") + '">' + (rv.heat > 0.6 ? "closely" : rv.heat > 0.3 ? "with interest" : "hardly at all") + '</span></div>' +
+    '</div>' +
+    '<p class="hint">Every caravan they land floods the market they sold into &mdash; the same market you were going to sell into. ' +
+    'You cannot stop them. You can go further than they do.</p>' +
+    '<button class="btn ghost" data-a="close">Back</button>';
+}
+function sheetHelp(){
+  return '<h3>How to trade</h3><p class="sub">Five short parts. The rest you will learn from the journal.</p>' +
+    HELP.map(([t, b]) => '<div class="panel mb"><div class="kv"><span class="k"><b>' + t + '</b></span></div>' +
+      '<p class="primer" style="margin-top:6px">' + b + '</p></div>').join("") +
+    '<button class="btn" data-a="close">Back</button>';
+}
+/* one line of guidance the first time a tab is opened */
+const HINTS = {
+  bazaar:"Tap a good to buy it. What you hold sits in the godown until a caravan carries it out.",
+  roads:"Tap a city on the chart to load a caravan for it, or a dashed one to buy the road.",
+  estate:"A property with nobody keeping it earns nothing. Hire, then post them to it.",
+  house:"Anyone at your side gives a Hand. Give one a standing role and you trade that Hand for income.",
+  ledger:"Every figure in the game comes out of this one account."
+};
+function hintStrip(tab){
+  if(!S.seen) S.seen = {};
+  if(S.seen[tab] || !HINTS[tab]) return "";
+  return '<div class="hint-strip"><span>' + HINTS[tab] + '</span>' +
+    '<button data-a="hint-seen" data-v="' + tab + '" aria-label="Dismiss">&times;</button></div>';
+}
+
 /* ---------------------------------------------- building a merchant -- */
 let build = null;
 const NAMES_M = ["Yusuf ibn Ishaq","Tahir ibn Sulayman","Nasir al-Din","Umar ibn Wasil","Bahram ibn Rustam",
@@ -3330,8 +3841,8 @@ const NAMES_F = ["Bibi Nasiba","Oyxon bint Yusuf","Zarrina bint Tahir","Malika b
 const SON_NAMES = ["Tair","Sanjar","Ilyas","Rustam","Davud","Arslan","Kamil","Bahram","Otabek","Firuz"];
 
 function startCreate(){
-  build = {portrait:null, name:"", age:BASE_AGE, origins:[], flaws:[]};
-  openSheet(sheetCreate);
+  build = {portrait:null, name:"", age:BASE_AGE, origins:[], flaws:[], difficulty:"road"};
+  openSheet(sheetCreate, undefined, "fixed");
 }
 const buildSpent = () => build.origins.reduce((n,id)=>n + originById(id).cost, 0);
 const buildGain  = () => build.flaws.reduce((n,id)=>n + flawById(id).gain, 0);
@@ -3390,6 +3901,12 @@ function sheetCreate(){
     }).join("") + '</div>' +
     '<p class="hint">At most ' + MAX_FLAWS + '. A fault is not a discount &mdash; it is a bill that arrives every turn.</p></div>';
 
+  h += '<div class="panel mb"><div class="kv"><span class="k">The road you mean to walk</span></div>' +
+    '<div class="pillrow mt">' + Object.values(DIFFICULTY).map(d =>
+      '<button class="pill" data-a="builddiff" data-v="' + d.id + '" aria-pressed="' +
+      (build.difficulty === d.id) + '">' + d.name + '</button>').join("") + '</div>' +
+    '<p class="hint">' + esc(DIFFICULTY[build.difficulty].blurb) + ' You can change it later.</p></div>';
+
   h += '<div class="panel mb"><p class="primer">' +
     '<b>Hands</b> are actions. You and your household give one each per turn; staff on wages are not Hands, though a few may be raised into the household in time.<br>' +
     '<b>Ducats</b> below zero for three turns and the creditors take everything.<br>' +
@@ -3409,6 +3926,7 @@ function beginGame(){
   const pool = SON_NAMES.slice();
   const a = pool.splice(irnd(0,pool.length-1),1)[0], b = pool[irnd(0,pool.length-1)];
   newGame(build.name, build.portrait, build.age, sex, a, b);
+  S.difficulty = build.difficulty || "road";
   build.origins.forEach(id => { S.origins.push(id); originById(id).apply(); });
   build.flaws.forEach(id => { S.origins.push(id); flawById(id).apply(); });
   const kit = build.origins.map(id => originById(id).name).concat(build.flaws.map(id => flawById(id).name));
@@ -3424,7 +3942,7 @@ function beginGame(){
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-a]"); if(!t) return;
   const a = t.dataset.a, v = t.dataset.v;
-  if(a === "scrim" && e.target === t){ if(!build) closeSheet(); return; }
+  if(a === "scrim" && e.target === t){ if(sheetKind === "dismissible") closeSheet(); return; }
   if(a === "scrim") return;
   if(t.disabled) return;
   // keep whatever has been typed into the name field across a repaint
@@ -3433,6 +3951,52 @@ document.addEventListener("click", e => {
 
   switch(a){
     case "go": go(v); break;
+    case "menu": openSheet(sheetMenu); break;
+    case "help": openSheet(sheetHelp); break;
+    case "difficulty": openSheet(sheetDifficulty); break;
+    case "rival": openSheet(() => sheetRival(v)); break;
+    case "setdiff": S.difficulty = v; toast("good", DIFFICULTY[v].name + "."); closeSheet(); after(); break;
+    case "digest-toggle": S.flags.noDigest = !S.flags.noDigest; refreshSheet(); save(); break;
+    case "slots": openSheet(() => sheetSlots(v)); break;
+    case "slot-put":
+      if(slotWrite(+v)){ toast("good","Kept in slot " + v + "."); closeSheet(); }
+      else toast("bad","There is no room to keep it.");
+      break;
+    case "slot-get": {
+      const o = slotRead(+v); if(!o){ toast("bad","Nothing is kept there."); break; }
+      ask("Open that game?","The house you are playing now will be closed. Save it first if you want it.",[
+        {t:"Open it", s:"", do(){ S = o; repair(); save(); closeSheet(); after(); toast("good","Opened."); }},
+        {t:"No", s:"", do(){}}
+      ]);
+      break; }
+    case "export": openSheet(sheetExport); break;
+    case "import": openSheet(sheetImport); break;
+    case "copyblob": {
+      const ta = document.getElementById("saveblob"); if(!ta) break;
+      ta.select(); ta.setSelectionRange(0, ta.value.length);
+      const done = () => toast("good","Copied. Paste it somewhere safe.");
+      if(navigator.clipboard && navigator.clipboard.writeText)
+        navigator.clipboard.writeText(ta.value).then(done, () => { try{ document.execCommand("copy"); done(); }
+          catch(e){ toast("bad","Copy it by hand — it is selected."); } });
+      else { try{ document.execCommand("copy"); done(); }catch(e){ toast("bad","Copy it by hand — it is selected."); } }
+      break; }
+    case "doimport": {
+      const ta = document.getElementById("loadblob");
+      const o = ta ? importText(ta.value) : null;
+      if(!o){ toast("bad","That is not a game of this ledger."); break; }
+      const c = stateCard(o);
+      ask("Open " + c.name + "'s house?", c.when + ", worth " + fmt(c.worth) + " ducats in hand. This closes the house you are playing.",[
+        {t:"Open it", s:"", do(){ S = o; repair(); save(); closeSheet(); after(); toast("good","Opened."); }},
+        {t:"No", s:"", do(){}}
+      ]);
+      break; }
+    case "hint-seen": S.seen[v] = true; after(); break;
+    case "digest-open": S.digestPending = false; openSheet(sheetDigest); break;
+    case "digest-done": S.digestPending = false; closeSheet(); after(); break;
+    case "digest-off": S.flags.noDigest = true; S.digestPending = false; closeSheet(); after();
+      toast("", "The account is still in the menu when you want it."); break;
+    case "t-continue": closeSheet(); render(); break;
+    case "t-new": startCreate(); break;
     case "cancel": cancelPlan(); after(); window.scrollTo(0,0); break;
     case "close": closeSheet(); render(); break;
     case "haggle": haggle(e, t); break;
@@ -3511,6 +4075,7 @@ document.addEventListener("click", e => {
       refreshSheet(); break;
     case "age+": if(build.age < MAX_AGE){ build.age++; } refreshSheet(); break;
     case "age-": if(build.age > MIN_AGE && pointsFor(build.age-1) + buildGain() >= buildSpent()){ build.age--; } refreshSheet(); break;
+    case "builddiff": build.difficulty = v; refreshSheet(); break;
     case "trait": {
       const i = build.origins.indexOf(v);
       if(i >= 0) build.origins.splice(i,1);
@@ -3575,12 +4140,16 @@ const PORTRAITS = {
 /* ------------------------------------------------------------- boot -- */
 (function boot(){
   document.documentElement.style.setProperty("--chart-bg", "url(" + ART.steppe + ")");
-  if(load()){ render(); }
-  else{
-    newGame(pick(NAMES_M), PORTRAIT_IDS[6], BASE_AGE, "m", "Tair", "Sanjar");
-    render(); startCreate();
-  }
+  const had = load();
+  if(!had) newGame(pick(NAMES_M), PORTRAIT_IDS[6], BASE_AGE, "m", "Tair", "Sanjar");
+  render();
+  openSheet(sheetTitle, undefined, "fixed");
   window.addEventListener("beforeunload", () => { if(S) save(); });
+  if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});   // no shell here, no matter
+    });
+  }
 })();
 </script>
 </body>
