@@ -1,4 +1,4 @@
-# Putting The Samarkand Ledger on an Android phone
+# Putting Silk Road on an Android phone
 
 Three routes, cheapest first. The first one is already built and needs nothing
 from you but a setting; the other two are here for when you want a real
@@ -36,7 +36,7 @@ Samsung Internet works the same way (menu → *Add page to* → *Home screen*).
 
 **Updating it:** push to the branch. The service worker fetches the new copy in
 the background and it lands the next time the app is opened. If you change
-`index.html` substantially, bump `CACHE` in `sw.js` (e.g. `samarkand-ledger-v4`)
+`index.html` substantially, bump `CACHE` in `sw.js` (e.g. `silk-road-v5`)
 so old copies are evicted rather than merged.
 
 **What you get and don't get:** a real app icon, full screen, offline play, and
@@ -60,7 +60,7 @@ npm install -g @bubblewrap/cli
 bubblewrap init --manifest https://heirsofruin.github.io/SilkRoad/manifest.webmanifest
 
 # Answer the prompts. The important ones:
-#   Application ID:  com.heirsofruin.samarkand     (must be unique and permanent)
+#   Application ID:  com.heirsofruin.silkroad     (must be unique and permanent)
 #   Signing key:     let it generate one, then BACK UP the .keystore and password —
 #                    lose them and you can never update the app on a device again.
 
@@ -85,7 +85,7 @@ fingerprint Bubblewrap prints and publish it at
   "relation": ["delegate_permission/common.handle_all_urls"],
   "target": {
     "namespace": "android_app",
-    "package_name": "com.heirsofruin.samarkand",
+    "package_name": "com.heirsofruin.silkroad",
     "sha256_cert_fingerprints": ["<the fingerprint bubblewrap printed>"]
   }
 }]

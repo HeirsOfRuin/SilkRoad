@@ -1,6 +1,6 @@
-# The Samarkand Ledger
+# Silk Road
 
-A turn-based Silk Road merchant game. Single HTML file, no build step, no server,
+A turn-based merchant game on the Silk Road. Single HTML file, no build step, no server,
 no API key. Open `index.html` — on a phone, a tablet or a desktop — and play.
 
 Samarkand, spring 1247. You buy a ruined caravanserai on the Zarafshan road and

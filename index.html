@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Alegreya+Sans:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
-<title>The Samarkand Ledger</title>
+<title>Silk Road</title>
 <style>
 :root{
   --ground:#0F1621; --ground-2:#0B1019; --panel:#182234; --panel-hi:#202D45;
@@ -304,7 +304,7 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
 <script>
 "use strict";
 /* =====================================================================
-   THE SAMARKAND LEDGER — a Silk Road merchant house, 1247
+   SILK ROAD — a merchant house on the road, 1247
    One authoritative state object (S). Every displayed number derives
    from it; ducats move through coin() and nowhere else.
    ===================================================================== */
@@ -331,6 +331,8 @@ const CONFIG = {
   promoteYears: 10,         // turns of service before a promotion is thinkable
   promoteLoyalty: 70,
   winDucats: 20000, winRepute: 60,
+  /* storage keys keep the old working title on purpose: renaming them would
+     orphan every save already on a player's device. */
   saveKey: "samarkand-ledger-v3",
   slotKey: "samarkand-ledger-slot"
 };
@@ -3998,7 +4000,7 @@ function sheetTitle(){
   const auto = (function(){ try{ const r = localStorage.getItem(CONFIG.saveKey);
     return r ? stateCard(JSON.parse(r)) : null; }catch(e){ return null; } })();
   return banner("oasis", "1247", "Three cities, three roads, one ledger") +
-    '<h3>The Samarkand Ledger</h3>' +
+    '<h3>Silk Road</h3>' +
     '<p class="sub">A trading house on the Silk Road, from a ruined caravanserai to a name they know in Chang\'an.</p>' +
     (auto ? '<button class="btn mb" data-a="t-continue"><span class="ct">Continue</span></button>' +
       '<p class="hint" style="margin:-4px 0 12px">' + esc(auto.name) + ' &middot; ' + esc(auto.when) +

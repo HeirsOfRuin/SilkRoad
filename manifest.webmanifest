@@ -1,7 +1,7 @@
 {
-  "name": "The Samarkand Ledger",
-  "short_name": "Samarkand",
-  "description": "A turn-based Silk Road merchant game. Build a trading house from a ruined caravanserai outside Samarkand, 1247.",
+  "name": "Silk Road",
+  "short_name": "Silk Road",
+  "description": "A turn-based merchant game on the Silk Road. Build a trading house from Samarkand, Trebizond or Tabriz, 1247.",
   "id": ".",
   "start_url": "./",
   "scope": "./",
