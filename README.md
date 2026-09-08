@@ -76,7 +76,7 @@ bite, and it also scales how much the rival houses lean on you:
 | | Seasons | Rivals |
 |---|---|---|
 | **A kind road** | Felt, but no road is ever closed | Keep to themselves |
-| **The road as it is** | Winter shuts the passes; the sea road sails only with the monsoon | Compete, and occasionally bite |
+| **The road as it is** | Winter shuts the passes and lays the Black Sea up; the Gulf sails only with the monsoon | Compete, and occasionally bite |
 | **A hard road** | Every country has a season that stops it | Give no quarter |
 
 Age also drives two numbers nobody writes down: a younger merchant has more
@@ -188,9 +188,15 @@ one more pair of Hands — the spouse joins the household.
 
 The calendar is structural, not flavour. Each terrain has a season profile —
 spring melt on the made roads, summer wells failing in the desert, winter
-closing the Pamirs, the Indian Ocean monsoon that lets a dhow sail only in
-autumn and winter. A road that is shut refuses dispatch outright; the rest is a
-multiplier on that road's own danger.
+closing the Pamirs. Water carries two profiles, because the world does: the
+Indian Ocean monsoon lets a dhow out of Hormuz only in autumn and winter, while
+the Black Sea keeps the opposite calendar and lies up all winter, so a route
+may name which of the two it follows. A road that is shut refuses dispatch
+outright; the rest is a multiplier on that road's own danger.
+
+The one exception is the free road you begin with — the short haul out of your
+own gate. It is never seasonally shut, so a house always has something to do on
+turn one.
 
 A long road crosses several seasons, so the planner **averages the modifier
 across the turns the trip will span** rather than judging a run to Chang'an by

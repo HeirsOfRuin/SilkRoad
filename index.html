@@ -348,16 +348,25 @@ const SEASON_FX = {
   mountain:{Spring:{risk:1.30, note:"meltwater and rockfall"}, Summer:{risk:0.85, note:"the passes are open"},
             Autumn:{risk:1.10, note:"snow comes early up there"}, Winter:{risk:2.20, shut:true, note:"the passes are shut until the thaw"}},
   sea:     {Spring:{risk:1.35, shut:true, note:"the monsoon is against you"}, Summer:{risk:1.30, shut:true, note:"no master will sail into it"},
-            Autumn:{risk:0.90, note:"the wind stands fair for the Indies"}, Winter:{risk:0.95, note:"the sailing season"}}
+            Autumn:{risk:0.90, note:"the wind stands fair for the Indies"}, Winter:{risk:0.95, note:"the sailing season"}},
+  /* The Black Sea and the Mediterranean keep the opposite calendar to the
+     monsoon: hulls sail from the spring out-fitting to the autumn gales and
+     lie up all winter. A route says which of the two it keeps. */
+  coast:   {Spring:{risk:1.05, note:"the ships are out of winter quarters"}, Summer:{risk:0.85, note:"the sailing season"},
+            Autumn:{risk:1.15, note:"the equinoctial gales"},
+            Winter:{risk:1.60, shut:true, note:"no master leaves the roads before the spring"}}
 };
+/* Terrain decides who may carry it and what may happen on the way; the season
+   table can differ from the terrain, and a route may name its own. */
+const seasonKeyOf = r => r.season || r.terrain;
 /* Three roads to walk. The seasons are the axis; the rivals lean on it too. */
 const DIFFICULTY = {
   kind:{ id:"kind", name:"A kind road",      blurb:"The seasons are felt but never close a road. Rivals keep to themselves.",
          shut:false, sharp:0.45, rivalHeat:0.5 },
   road:{ id:"road", name:"The road as it is", blurb:"Winter shuts the passes; the sea road sails only with the monsoon. Rivals compete and occasionally bite.",
-         shut:["mountain","sea"], sharp:1, rivalHeat:1 },
+         shut:["mountain","sea","coast"], sharp:1, rivalHeat:1 },
   hard:{ id:"hard", name:"A hard road",       blurb:"Every country has a season that stops it, and the other houses give no quarter.",
-         shut:["mountain","sea","desert","road"], sharp:1.45, rivalHeat:1.7 }
+         shut:["mountain","sea","coast","desert","road"], sharp:1.45, rivalHeat:1.7 }
 };
 const diff = () => DIFFICULTY[(S && S.difficulty) || "road"] || DIFFICULTY.road;
 const seasonShut = terrain => {
@@ -381,15 +390,23 @@ function seasonRiskMult(terrain, startTurn, turns){
 }
 /* Whether a column may set out at all is decided by the season it leaves in. */
 function seasonBlocks(r, turn){
-  if(!seasonShut(r.terrain)) return null;
-  const fx = seasonFx(r.terrain, turn === undefined ? S.turn : turn);
+  /* The short road out of your own gate is the one you work in every weather.
+     A house whose only free road shuts on it has no game to play. */
+  if(r.open) return null;
+  const k = seasonKeyOf(r);
+  if(!seasonShut(k)) return null;
+  const fx = seasonFx(k, turn === undefined ? S.turn : turn);
   return fx.shut ? (fx.note || "The season is against you") : null;
 }
 function seasonLine(){
   const parts = [];
-  ["mountain","sea","desert","road"].forEach(t => {
+  const mine = {};
+  ROUTES.forEach(r => { mine[seasonKeyOf(r)] = true; });
+  ["mountain","sea","coast","desert","road"].forEach(t => {
+    if(!mine[t]) return;
     const fx = seasonFx(t, S.turn);
-    if(seasonShut(t) && fx.shut) parts.push(t === "sea" ? "the sea road waits for the monsoon" : "the " + t + " roads are shut");
+    if(seasonShut(t) && fx.shut) parts.push(t === "sea" ? "the sea road waits for the monsoon" :
+      t === "coast" ? "the galleys are laid up for the winter" : "the " + t + " roads are shut");
     else if(fx.note && fx.risk >= 1.2) parts.push(fx.note);
     else if(fx.note && fx.risk <= 0.92) parts.push(fx.note);
   });
@@ -495,15 +512,15 @@ const ROUTES_SAMARKAND = [
    trade of Asia coming down over the Zigana pass to be shipped west.
    --------------------------------------------------------------------- */
 const ROUTES_TREBIZOND = [
-  {id:"sinope",  to:"sinope",  name:"The Coast Road",      turns:1, risk:0.08, terrain:"sea", open:true,
+  {id:"sinope",  to:"sinope",  name:"The Coast Road",      turns:1, risk:0.08, terrain:"sea", season:"coast", open:true,
    note:"Two days west along the Pontic shore, with the mountains on your left the whole way."},
   {id:"sivas",   to:"sivas",   name:"The Anatolian Road",  turns:2, risk:0.14, terrain:"road", cost:80,  rep:6,
    note:"Inland to the Seljuk cities and the alum pits that dye half of Italy."},
   {id:"tbilisi", to:"tbilisi", name:"Over the Zigana",     turns:2, risk:0.17, terrain:"mountain", cost:110, rep:9,
    note:"Up through the pass into the Georgian kingdom. Steep, wet, and worth it."},
-  {id:"soldaia", to:"soldaia", name:"Across the Black Sea",turns:3, risk:0.18, terrain:"sea", cost:160, rep:12, needs:"captain",
+  {id:"soldaia", to:"soldaia", name:"Across the Black Sea",turns:3, risk:0.18, terrain:"sea", season:"coast", cost:160, rep:12, needs:"captain",
    note:"North to the Crimean ports, where the Rus' furs come down the rivers each spring."},
-  {id:"constantinople", to:"constantinople", name:"To the Queen of Cities", turns:4, risk:0.17, terrain:"sea", cost:220, rep:16, needs:"captain",
+  {id:"constantinople", to:"constantinople", name:"To the Queen of Cities", turns:4, risk:0.17, terrain:"sea", season:"coast", cost:220, rep:16, needs:"captain",
    note:"Four days' sail to the richest market in Christendom, where Genoese and Venetians bid against each other."},
   {id:"tabriz",  to:"tabriz",  name:"The Ilkhan's Road",   turns:5, risk:0.25, terrain:"mountain", cost:280, rep:20, needs:"guide",
    note:"Erzurum, the Armenian highlands, and down into Persia. Every eastern good comes up this road."},
@@ -563,6 +580,7 @@ const STARTS = {
     blurb:"Transoxiana, where every road meets. Paper, silk and the whole eastern trade pass your gate, and so does everybody else's caravan.",
     opening:"You take possession of a ruined caravanserai a half-day east of Samarkand. The well is dry, the gate is off its hinges, and the road outside carries a hundred laden beasts a day.",
     routes:ROUTES_SAMARKAND,
+    fleet:[["camel",0],["camel",0]],
     stocks:["silk","paper","glass","spices","incense","horses","tea","porcelain","jade","lapis"],
     seat:"Samarkand", ruler:"the governor of Samarkand", art:"gate",
     props:{
@@ -592,6 +610,9 @@ const STARTS = {
     blurb:"Where the Silk Road ends and Italy begins. Everything Asia sends comes down the Zigana pass to your quay, and Genoese money is waiting for it.",
     opening:"You take a half-ruined warehouse on the lower quay at Trebizond, with a rotten roof, a good cellar, and a view of every Genoese galley that comes into the roads.",
     routes:ROUTES_TREBIZOND,
+    /* the coast road is a sea road, so a Trapezuntine house starts with a
+       hull. One camel for the roads inland; the rest it buys. */
+    fleet:[["boat",0],["camel",0]],
     stocks:["alum","wine","cloth","furs","silk","spices","glass","saffron"],
     seat:"Trebizond", ruler:"the Grand Komnenos", art:"river",
     props:{
@@ -626,6 +647,7 @@ const STARTS = {
     blurb:"The hinge of the world under Mongol law: the Gulf to the south, the Black Sea to the west, the whole road east. Everything passes through, and everything is taxed on the way.",
     opening:"You take a house and yard off the Ghazan road in Tabriz, with a cracked cistern and a gate wide enough for a laden camel. The city outside is the busiest market between Cairo and Cathay.",
     routes:ROUTES_TABRIZ,
+    fleet:[["camel",0],["camel",0]],
     stocks:["silk","saffron","carpets","spices","dates","porcelain","glass","alum","furs"].filter(g => g !== "carpets"),
     seat:"Tabriz", ruler:"the Mongol governor", art:"tent",
     props:{
@@ -1756,7 +1778,7 @@ function newGame(playerName, portrait, age, sex, sonA, sonB, startId){
   S.threads = Object.fromEntries(THREADS.map(t=>[t.id,{stage:0, cool:0, done:false}]));
   ROUTES.filter(r => r.open).forEach(r => { S.routes[r.id] = {open:true, runs:0, sat:0}; });
   seedRivals();
-  addUnit("camel",0); addUnit("camel",0);
+  (startDef().fleet || [["camel",0],["camel",0]]).forEach(f => addUnit(f[0], f[1]));
   post("gold", startDef().opening);
   return S;
 }
@@ -1814,6 +1836,22 @@ function repair(){                       // forward-compatible defaults
   S.seen = S.seen || {};
   S.start = STARTS[S.start] ? S.start : "samarkand";
   useStart(S.start);                       // the road list in play follows the save
+  /* A house begun before the starting fleet was matched to its start could be
+     dealt two camels and a sea road out of its own gate, with the yard hiding
+     the one thing that would have floated. Deal it the hull it should have
+     had, once. */
+  if(!S.flags) S.flags = {};
+  if(!S.flags.startFleetFix){
+    S.flags.startFleetFix = true;
+    const first = ROUTES.find(r => r.open);
+    const line  = first && FLEET_LINES.find(l => lineOk(l, first.terrain));
+    if(line && !S.fleet.some(u => u.line === line) && !unlockedTier(line)){
+      addUnit(line, 0);
+      post("gold","<em>" + esc(FLEET[line].tiers[0].name) + ".</em> Your own road out of " +
+        esc(startDef().seat) + " is " + first.terrain + " country, and nothing in the yard could travel it. " +
+        "The house is entered against one, at no charge: you should never have been asked to walk it.");
+    }
+  }
   if(!Array.isArray(S.rivals) || !S.rivals.length) seedRivals();
   S.rivals.forEach(r => { r.out = r.out || []; r.routes = r.routes || (rivalDef(r.id)||{roads:[]}).roads.slice(); });
   S.hist = S.hist || {};
@@ -2082,7 +2120,7 @@ function routeRisk(rid, extraCut, startTurn){
   const cut = Math.min(0.82, riskMod(r.terrain) + (extraCut || 0));
   let up = 1 + e.risk;
   e.routes.forEach(x => { if(x.rid === rid) up += x.up; });
-  up *= seasonRiskMult(r.terrain, startTurn === undefined ? S.turn : startTurn, r.turns);
+  up *= seasonRiskMult(seasonKeyOf(r), startTurn === undefined ? S.turn : startTurn, r.turns);
   return clamp(r.risk * (1 - cut) * up, 0.02, 0.90);
 }
 const routeOpen = rid => !!(S.routes[rid] && S.routes[rid].open);
@@ -3404,7 +3442,7 @@ function viewRoads(){
 function viewPlan(){
   const p = S.plan, r = route(p.rid), cap = planCap(), loads = planLoads();
   const val = planValue(), risk = planRisk(), eCost = escortCost(p.escort, r.turns);
-  const sMult = seasonRiskMult(r.terrain, S.turn, r.turns);
+  const sMult = seasonRiskMult(seasonKeyOf(r), S.turn, r.turns);
   const rc = returnCargo(r.to);
   const invested = GOOD_IDS.reduce((n,g)=>n + p.cargo[g]*buyPrice(g), 0);
   const deals = contractsFor(r.to);
@@ -3431,7 +3469,9 @@ function viewPlan(){
 
   h += '<div class="panel mb"><div class="kv"><span class="k">Beasts on this road</span><span class="v">' + cap + ' loads</span></div>';
   const groups = planGroups();
-  if(!groups.length) h += '<p class="hint">Nothing you own can travel ' + r.terrain + ' country.</p>';
+  if(!groups.length) h += '<p class="hint">Nothing you own can travel ' + r.terrain + ' country. ' +
+    'The yard on the Estate page sells what does &mdash; ' +
+    FLEET_LINES.filter(l => lineOk(l, r.terrain)).map(l => FLEET[l].name.toLowerCase()).join(" or ") + '.</p>';
   groups.forEach(g => {
     h += '<div class="kv"><span class="k">' + g.def.name + ' <span class="num">(' + g.free + ' free · ' + g.def.cap + ' loads)</span></span>' +
       '<span class="v"><span class="step" style="width:150px">' +
@@ -3479,7 +3519,7 @@ function viewPlan(){
       (satOf(r.id)>0.02 ? " (-" + Math.round(satOf(r.id)*100) + "%)" : "") + '</span></div>' +
     '<div class="kv"><span class="k">Expected profit</span><span class="v ' + (val-invested-eCost>=0?"pos":"neg") + '">' + sgn(val-invested-eCost) + 'd</span></div>' +
     '<div class="kv"><span class="k">The season</span><span class="v ' + (sMult > 1.06 ? "neg" : sMult < 0.96 ? "pos" : "") + '">' +
-      esc(seasonFx(r.terrain, S.turn).note || seasonOf(S.turn)) +
+      esc(seasonFx(seasonKeyOf(r), S.turn).note || seasonOf(S.turn)) +
       (Math.abs(sMult - 1) > 0.03 ? " (" + (sMult > 1 ? "+" : "") + Math.round((sMult-1)*100) + "%)" : "") + '</span></div>' +
     '<div class="kv"><span class="k">Chance of trouble</span><span class="v neg">' + pct(risk) + '</span></div>' +
     '<div class="bar risk"><i style="width:' + Math.round(risk*100) + '%"></i></div></div>';
@@ -3519,7 +3559,10 @@ function viewEstate(){
     '<div class="rows">';
   FLEET_LINES.forEach(line => {
     const d = FLEET[line], owned = S.fleet.filter(u => u.line === line);
-    if(!owned.length && unlockedTier(line) === 0 && line === "boat" && !routeOpen("hormuz")) return;
+    /* hide gear you have never owned and have no road for — decided by the
+       country your open roads actually cross, not by one hardcoded route */
+    if(!owned.length && unlockedTier(line) === 0 &&
+       !ROUTES.some(r => routeOpen(r.id) && lineOk(line, r.terrain))) return;
     const cap = owned.reduce((n,u)=>n + unitDef(u).cap, 0);
     const parts = d.tiers.map((t,i) => { const n = unitsOn(line,i).length; return n ? n + "x " + t.name.toLowerCase() : null; }).filter(Boolean);
     h += '<button class="row" data-a="line" data-v="' + line + '">' +
@@ -4073,9 +4116,10 @@ const HELP = [
   ["Your bazaar sells what your country makes","Silk and paper in Samarkand, alum and wine in Trebizond, saffron and dates in Tabriz. Everything else has to be carried in from somewhere that makes it — which is most of what a caravan is for."],
   ["Hands are actions","You and your household give one Hand each per turn, and a Hand not spent is gone. Building, hiring, scouting, courting and sending a caravan each cost one. Buying, selling and working the cloth row cost none, so trade freely."],
   ["Staff are not Hands","Hired people take a wage and do one job — and a property with nobody keeping it earns nothing at all, however grand it is. Serve long enough, loyally enough, and a member of staff can be brought into the household, where they give a Hand like family. Your name can only carry so many of them at your table at once."],
-  ["A road wears out, and the season matters","Every run on a road floods that market, and the price falls back only while you are away — the answer is always further out. The calendar bites too: some roads shut outright in the wrong season (a dhow does not sail against the monsoon), and even an open one is more dangerous at a bad time of year than a good one. How hard any of this bites is the difficulty you chose."],
+  ["A road wears out, and the season matters","Every run on a road floods that market, and the price falls back only while you are away — the answer is always further out. The calendar bites too: some roads shut outright in the wrong season — a dhow does not sail against the monsoon, a Black Sea master will not leave the roads before the spring, and the mountain passes are shut until the thaw — and even an open road is more dangerous at a bad time of year than a good one. The one road you begin with is the exception: it is the short haul out of your own gate, and you work it in every weather. How hard any of this bites is the difficulty you chose."],
   ["Orders pay more than the market", "A patron will pay well over the going rate for a fixed order, delivered by a set turn — it fills itself the moment a caravan of yours reaches that city carrying enough of the goods. Miss the date and the bond has a penalty written into it."],
   ["A marriage is a standing advantage","A dozen merchant houses along the road will consider a match, each for a bride-price and a Hand. What it brings — a road opened, a good at source price, credit that buys you a few more turns before the creditors move — outlasts the wedding, and the spouse joins your household as another pair of hands."],
+  ["A road is walked, sailed or not travelled at all","Every road crosses one kind of country, and only some of your fleet can cross it. Camels take road, steppe, desert and mountain; carts and wagons want a made road; a hull is the only thing that goes on water. If the planner says nothing you own can travel that country, the yard on the Estate page sells what can. The yard only lists a kind you already own or have a road for, so it grows as your map does."],
   ["The fleet is worked up, not just bought","A beast or a vehicle is upgraded one tier at a time, cheaply. Once you have owned a tier, you can buy that kind outright — for rather more than the work would have cost. A tier you have never reached cannot be bought at any price, whatever you offer."],
   ["The other houses are not scenery","Two or three rival merchant houses trade the same roads. Every caravan they land floods a market you may have been counting on, and a strong one that has noticed you will outbid an order, poach an unhappy member of your staff, or undercut a city you both sell in."],
   ["What kills you","Three turns in the red and the creditors take everything. Empty stores mean grain at famine prices and a name that could not feed its drivers. And past fifty-five, a merchant may not see the spring — keep someone in the household old enough to take the seal, or the house ends with you."]
