@@ -2,7 +2,7 @@
    The game is one self-contained file with no network calls of its own, so
    caching it is enough to make the installed app work with no signal at all.
    Bump CACHE when index.html changes and the new copy lands on next launch. */
-const CACHE = "silk-road-v6";
+const CACHE = "silk-road-v7";
 const SHELL = [
   "./",
   "./index.html",
