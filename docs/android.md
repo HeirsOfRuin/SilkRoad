@@ -36,7 +36,7 @@ Samsung Internet works the same way (menu → *Add page to* → *Home screen*).
 
 **Updating it:** push to the branch. The service worker fetches the new copy in
 the background and it lands the next time the app is opened. If you change
-`index.html` substantially, bump `CACHE` in `sw.js` (e.g. `silk-road-v7`)
+`index.html` substantially, bump `CACHE` in `sw.js` (e.g. `silk-road-v8`)
 so old copies are evicted rather than merged.
 
 **What you get and don't get:** a real app icon, full screen, offline play, and
