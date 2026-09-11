@@ -3453,13 +3453,19 @@ function viewRoads(){
 
 /* The country a road crosses, when there is a picture of it. Keyed on terrain,
    so one image serves every road of that kind, and absent art is simply no
-   banner rather than a broken one. */
+   banner rather than a broken one.
+
+   The caption stays short on purpose. A season note can run to fifty
+   characters, wraps to two lines on a phone, and its dark gradient then
+   swallows the middle of the picture — and the planner already carries that
+   note in its own row below, with the risk figure attached. */
+const LAND_NAME = {road:"Made road", desert:"Desert country",
+                   mountain:"The passes", sea:"The sea road"};
 function terrainBanner(r){
   const key = "land_" + r.terrain;
   if(!ART[key]) return "";
-  const fx = seasonFx(seasonKeyOf(r), S.turn);
-  return banner(key, esc(CITIES[r.to].name) + " &middot; " + r.turns + " turn" + (r.turns>1?"s":""),
-    esc(fx.note ? fx.note.charAt(0).toUpperCase() + fx.note.slice(1) : r.terrain + " country"));
+  return banner(key, esc(LAND_NAME[r.terrain] || r.terrain),
+    esc(CITIES[r.to].name) + " &middot; " + r.turns + " turn" + (r.turns>1?"s":""));
 }
 
 /* ------------------------------------------------------ the planner -- */
