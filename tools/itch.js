@@ -50,6 +50,12 @@ fs.rmSync(STAGE, { recursive: true, force: true });
 fs.mkdirSync(STAGE, { recursive: true });
 fs.writeFileSync(path.join(STAGE, 'index.html'), html);
 
+/* the same stripped file, loose, as the downloadable. Opened straight off
+   disk it has no network dependency except the webfonts, which fall back,
+   and localStorage still works — so a download plays offline and saves. */
+const loose = path.join(OUT, 'Silk-Road.html');
+fs.writeFileSync(loose, html);
+
 const zip = path.join(OUT, 'silk-road-itch.zip');
 fs.rmSync(zip, { force: true });
 execFileSync('zip', ['-q', '-9', '-j', zip, path.join(STAGE, 'index.html')]);
@@ -59,3 +65,4 @@ const kb = n => (n / 1024).toFixed(0) + 'KB';
 console.log('\nindex.html ' + kb(before) + ' -> ' + kb(html.length) +
             '  zip ' + kb(fs.statSync(zip).size));
 console.log('wrote ' + path.relative(ROOT, zip) + ' — index.html at the zip root, which is what itch requires');
+console.log('wrote ' + path.relative(ROOT, loose) + ' — the downloadable, plays offline from disk');
