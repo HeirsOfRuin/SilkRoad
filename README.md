@@ -58,7 +58,8 @@ own road**, whichever road that is.
 The game opens on a point-buy character sheet:
 
 - **A face.** Sixteen pixel-art portraits. The one you pick is your character for
-  the rest of the game and shows on the household roster and in the header.
+  the rest of the game: it sits beside your house name in the header and opens
+  your page, and an heir who takes the seal brings their own face up there.
 - **An age.** Thirty is the reckoning age and gives 7 points. Every year over
   buys a point; every year under costs one (range 24-55).
 - **Sixteen advantages**, 3 to 8 points each — a mule and cart, a purse, a
@@ -116,6 +117,34 @@ ends.
 Win: net worth 20,000 ducats, Repute 60, and at least one caravan home from
 Turfan, Dunhuang or Chang'an. Lose: three consecutive turns in the red. Winning
 is an ending, not a wall — you can take the title and keep trading.
+
+## Faces
+
+Everyone in the game has a face, cast from the sixteen portraits: your sons, a
+brother, the wives who marry in, every member of staff, the person each hire
+post would bring (you see who would come before you hire), the head of each
+rival house, and the match each merchant house offers. Faces show on the
+household and staff rows, the hire list, the rival and match rows, each
+person's page, the caravan leader on the road and in the leader picker, the
+journal and the end-of-turn account, and a rival's own offers.
+
+The casting (`castFace` in `index.html`):
+
+- **Sex first.** Staff take theirs from their name; a spouse is the opposite of
+  the one they married. The road posts (guard, guide, caravan master, dhow
+  captain) draw men's names.
+- **Then their people.** Each portrait carries the peoples it can stand for
+  (`FACE_KIN`): a Genoese factor gets the Frank in the hat, a Kipchak bride the
+  furs, a Bukharan banker the Persian. The job outweighs the home town, so the
+  guard captain is the helm wherever he was born.
+- **Nobody else wears your face**, and a face already at your table is passed
+  over while another face that fits is free. When none is, a fitting face is
+  worn twice before an unfitting one is used: a Bukharan bride came out
+  Kashmiri in the first test because the clerk had the one Persian face.
+- **Kept on the save.** Household and staff keep the face they were given
+  (`portrait` on the person), so a son never changes face when a clerk is
+  hired. Rivals and matches are cast from their own data, the same every time.
+  An older save is given faces on load.
 
 ## Resources
 

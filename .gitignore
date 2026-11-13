@@ -1,3 +1,4 @@
 
 # build output — reproducible from tools/itch.js and tools/store.js
 dist/
+release/

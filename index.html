@@ -40,7 +40,19 @@ h1,h2,h3{margin:0;font-family:var(--f-disp);font-weight:700;text-wrap:balance;le
 #hud{position:sticky;top:0;z-index:40;background:rgba(11,16,25,.93);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
-.hud-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 14px 5px}
+.hud-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px 5px}
+.hud-top .house{flex:1;min-width:0}
+.hud-face{flex:none;width:40px;height:40px;padding:0;border-radius:9px;overflow:hidden;border:1px solid var(--brass-dim);background:var(--panel);cursor:pointer}
+.hud-face img{width:100%;height:100%;object-fit:cover;display:block}
+.entry .pf{float:left;width:36px;height:36px;margin:3px 10px 4px 0;border-radius:7px;overflow:hidden;border:1px solid var(--line-soft)}
+.entry .pf img{width:100%;height:100%;object-fit:cover;display:block}
+.entry::after{content:"";display:block;clear:both}
+.pill .pf{display:inline-block;width:20px;height:20px;border-radius:5px;overflow:hidden;vertical-align:-5px;margin-right:6px}
+.pill .pf img{width:100%;height:100%;object-fit:cover;display:block}
+.sheet-face{display:flex;gap:14px;align-items:center;margin:2px 0 10px}
+.sheet-face .glyph{width:76px;height:76px;border-radius:12px;border:1px solid var(--brass-dim)}
+.sheet-face .eyebrow{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.sheet-face .who-name{font-family:var(--f-disp);font-size:22px;line-height:1.15;color:var(--silk)}
 .house{font-family:var(--f-disp);font-size:19px;line-height:1.1;color:var(--silk)}
 .house small{display:block;font-family:var(--f-ui);font-size:11px;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim);margin-top:2px}
@@ -292,6 +304,7 @@ nav .badge.gold{background:var(--brass);color:#1a1408}
 <div class="frame">
   <header id="hud">
     <div class="hud-top">
+      <button class="hud-face" id="hudFace" data-a="member" data-v="m1" aria-label="Your character"></button>
       <div class="house" id="houseName">The House of Yusuf<small id="houseSeat">Samarkand</small></div>
       <div class="date" id="date"><b>Spring</b>1247</div>
       <button id="menuBtn" data-a="menu" aria-label="The house">&#9776;</button>
@@ -871,20 +884,20 @@ function rivalBite(){
     rv.wealth += Math.round(o.qty * o.pay * 0.2);
     post("bad","<em>Outbid.</em> " + esc(d.name) + " has taken the order for " + o.qty + " loads of " +
       GOODS[o.good].short.toLowerCase() + " to " + CITIES[o.city].name + ", at a price you would have lost money on.",
-      ["an order gone"]);
+      ["an order gone"], rivalFace(rv.id));
   }else if(m === "poach"){
     const st = pick(S.staff.filter(x => !x.trusted && x.loyalty < 40));
     S.staff = S.staff.filter(x => x !== st);
     repute(-1);
     post("bad","<em>" + esc(st.name) + " is gone.</em> " + esc(d.name) + " offered better terms, and your " +
-      esc(STAFF[st.type].name.toLowerCase()) + " took them. He knew your stages and your margins.",
-      ["-1 " + STAFF[st.type].name.toLowerCase()]);
+      esc(STAFF[st.type].name.toLowerCase()) + " took them. " + pronoun(st) + " knew your stages and your margins.",
+      ["-1 " + STAFF[st.type].name.toLowerCase()], st.portrait);
   }else{
     const r = pick(shared);
     S.undercut = {city:r.to, until:S.turn + irnd(3,5), by:rv.id};
     post("bad","<em>Undercut at " + CITIES[r.to].name + ".</em> " + esc(d.name) +
       " is selling below cost there to make a point of it. Your prices in that market will not hold for a few turns.",
-      ["-18% at " + CITIES[r.to].name]);
+      ["-18% at " + CITIES[r.to].name], rivalFace(rv.id));
   }
 }
 const undercutAt = city => (S.undercut && S.undercut.city === city) ? 0.82 : 1;
@@ -1605,11 +1618,11 @@ const THREADS = [
   {id:"rival", name:"The rival house", stages:[
     {when:()=>netIncome()>=18 || S.repute>=16, run(){
       const k = chief(); if(k){ k.heat = clamp(k.heat + 0.4, 0, 1); k.wealth += 250; }
-      post("bad","<em>A rival takes notice.</em> " + esc(chiefDef().name) + " asks in the cloth row who exactly you are. " + esc(chiefDef().note));
+      post("bad","<em>A rival takes notice.</em> " + esc(chiefDef().name) + " asks in the cloth row who exactly you are. " + esc(chiefDef().note), null, rivalFace(chiefDef().id));
       return true; }},
     {when:()=>true, run(){
       GOOD_IDS.forEach(g => S.supply[g] = clamp(S.supply[g]-0.05,0.5,2.2));
-      post("bad","<em>" + esc(chiefDef().name) + " moves.</em> They undercut you on three lines at once and take a loss to do it. Your buyers learn to wait a day before dealing with you.",["prices soften across the bazaar"]);
+      post("bad","<em>" + esc(chiefDef().name) + " moves.</em> They undercut you on three lines at once and take a loss to do it. Your buyers learn to wait a day before dealing with you.",["prices soften across the bazaar"], rivalFace(chiefDef().id));
       return true; }},
     {when:()=>true, run(){
       repute(-4);
@@ -1624,7 +1637,7 @@ const THREADS = [
           S.flags.feud=true; repute(3);
           const k = chief(); if(k){ k.heat = 1; k.wealth += 400; }
           post("gold","You hand the bond back unsigned. His man says nothing at all on the way out, which is worse than an argument.");}}
-      ]);
+      ], rivalFace(chiefDef().id));
       return true; }},
     {when:()=>S.flags.feud, run(){
       addIssue("feud");
@@ -1650,7 +1663,7 @@ const THREADS = [
           coin(-c,"Their creditors"); repute(12); S.flags.savedRival=true;
           const k2 = chief(); if(k2){ k2.heat = 0; k2.wealth = Math.round(k2.wealth * 0.5); }
           post("gold","<em>An enemy in your debt.</em> You quietly settle the small men they owed — the porters, the ropemaker, the widow with the dye vats. They hear who did it. So does everyone else.");}}
-      ]);
+      ], rivalFace(chiefDef().id));
       return true; }}
   ]},
 
@@ -1915,8 +1928,8 @@ function repute(d){
   S.repute = clamp(S.repute + d, 0, 100);
   return S.repute - before;
 }
-function post(kind, text, deltas){
-  S.journal.unshift({turn:S.turn, kind, text, deltas: deltas || null});
+function post(kind, text, deltas, who){
+  S.journal.unshift({turn:S.turn, kind, text, deltas: deltas || null, face: who || null});
   if(S.journal.length > 140) S.journal.length = 140;
 }
 
@@ -2232,12 +2245,13 @@ function hireStaff(type){
   if(fee > S.ducats){ toast("bad","Not enough ducats."); return; }
   if(!spendHand()){ toast("bad","No Hands left this turn."); return; }
   coin(-fee, "Hired a " + d.name.toLowerCase());
-  const s = {id:uid("s"), type, at:null, busy:0, name:pick(STAFF_NAMES), loyalty:55, years:0, trusted:false, bonus:0};
+  const who = candidateFor(type);
+  const s = {id:uid("s"), type, at:null, busy:0, name:who.name, portrait:who.portrait, loyalty:55, years:0, trusted:false, bonus:0};
   const want = Object.keys(PROPS).find(p => PROPS[p].staff === type && S.props[p] > 0 && !staffAt(p));
   if(want) s.at = want;
   S.staff.push(s);
   post("", esc(s.name) + " takes service with you as " + esc(d.name.toLowerCase()) +
-        (want ? ", for the " + esc(propName(want).toLowerCase()) : "") + ".");
+        (want ? ", for the " + esc(propName(want).toLowerCase()) : "") + ".", null, s.portrait);
   toast("good", s.name + " hired." + (want ? " Posted to the " + propName(want).toLowerCase() + "." : ""));
   closeSheet(); after();
 }
@@ -2327,6 +2341,7 @@ const canMarry = h => S.marriages.indexOf(h.id) < 0 && S.repute >= h.rep && reac
 function marry(hid, mid){
   const h = houseById(hid), m = S.house.find(x => x.id === mid);
   if(!h || !m) return;
+  const spouseFace = matchFace(h, m);
   if(h.price > S.ducats){ toast("bad","You cannot raise the bride-price."); return; }
   if(!spendHand()){ toast("bad","No Hands left this turn."); return; }
   coin(-h.price, "Bride-price to " + h.house);
@@ -2343,11 +2358,12 @@ function marry(hid, mid){
   if(g.postContract) S.flags.postContract = true;
   // the spouse joins the household, and that is one more pair of Hands
   S.house.push({id:uid("m"), name:h.match, age:irnd(18,26), role:"idle", at:null, skill:2,
-                you:false, busy:0, wed:true, spouseOf:m.id, fromHouse:hid});
+                you:false, busy:0, wed:true, spouseOf:m.id, fromHouse:hid,
+                sex:m.sex === "f" ? "m" : "f", portrait:spouseFace});
   for(let i=0;i<2;i++){ const o = makeOffer("house:" + hid); if(o) S.offers.push(o); }
   post("gold","<em>A marriage.</em> " + esc(m.name) + " is married to " + esc(h.match) + " of " + esc(h.house) +
     ". " + esc(h.wedding) + " " + esc(h.giftText),
-    ["+1 Hand", d.ducats ? "+" + fmt(d.ducats) + "d dowry" : "", g.route ? "a road opened" : ""].filter(Boolean));
+    ["+1 Hand", d.ducats ? "+" + fmt(d.ducats) + "d dowry" : "", g.route ? "a road opened" : ""].filter(Boolean), spouseFace);
   toast("good", h.match + " joins the household.");
   closeSheet(); after();
 }
@@ -2404,7 +2420,7 @@ function promoteStaff(sid){
   s.loyalty = clamp(s.loyalty + 25, 0, 100);
   repute(4);
   post("gold","<em>" + esc(s.name) + " comes into the household.</em> " + esc(s.name) + " eats at your table, carries your seal, " +
-    "and can be sent where a son would be sent. The yard notices which of them you chose.",["+1 Hand","wage doubled"]);
+    "and can be sent where a son would be sent. The yard notices which of them you chose.",["+1 Hand","wage doubled"], s.portrait);
   toast("good", s.name + " is of the household.");
   closeSheet(); after();
 }
@@ -2545,13 +2561,13 @@ function dispatch(){
   GOOD_IDS.forEach(g => { invested += p.cargo[g] * buyPrice(g); });   // cargo left the godown as it was loaded
 
   S.caravans.push({
-    id:uid("c"), rid:p.rid, leader:p.leader, leaderName:leaderName(p.leader),
+    id:uid("c"), rid:p.rid, leader:p.leader, leaderName:leaderName(p.leader), face:faceOf(leaderOf(p.leader)),
     units:taken.map(u => u.id), cargo:{...p.cargo}, loads:planLoads(), escort:p.escort,
     bring:p.bring, out:S.turn, due:S.turn + r.turns, invested:Math.round(invested),
     expect:Math.round(planValue()), risk:planRisk()
   });
   post("gold","<em>" + esc(r.name) + ".</em> " + esc(leaderName(p.leader)) + " leads " + planLoads() +
-      " loads out through the eastern gate. Expected back in " + r.turns + " turn" + (r.turns>1?"s":"") + ".");
+      " loads out through the eastern gate. Expected back in " + r.turns + " turn" + (r.turns>1?"s":"") + ".", null, faceOf(leaderOf(p.leader)));
   toast("good","Caravan away.");
   S.plan = null; S.tab = "roads"; after();
 }
@@ -2699,7 +2715,7 @@ function resolveCaravan(c){
   post(tag === "good" ? (kind === "boon" ? "gold" : "good") : "bad",
     "<em>" + esc(c.leaderName) + " is back from " + esc(CITIES[r.to].name) + ".</em> " + lines.join(" ") +
     (brought ? " They bring " + brought + " home in the empty panniers." : ""),
-    deltas.filter(Boolean));
+    deltas.filter(Boolean), c.face || faceOf(leaderOf(c.leader)));
   fireThread("caravan", {route:r, city:CITIES[r.to].name, hit, profit});
 }
 
@@ -2760,7 +2776,7 @@ const ORIGINS = [
      age:S.house[0].age - irnd(2,8), role:"idle", at:null, skill:2, you:false, busy:0, sex:"m"}); }},
   {id:"guide",  cost:8, name:"An old guide's friendship",
    desc:"A mountain guide takes your wage from the first turn, with no fee to sign.",
-   apply(){ S.staff.push({id:uid("s"), type:"guide", at:null, busy:0, name:pick(STAFF_NAMES),
+   apply(){ S.staff.push({id:uid("s"), type:"guide", at:null, busy:0, name:pick(STAFF_NAMES.filter(n => !STAFF_F.has(n))),
      loyalty:75, years:4, trusted:false, bonus:0}); }},
   {id:"cousin", cost:7, name:"A cousin at the bank",
    desc:"The counting house costs a third less, and orders find you sooner.",
@@ -2960,7 +2976,7 @@ function buildDigest(m){
     lines: Object.entries(lines).sort((a,b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 12),
     ducats: S.ducats - m.ducats, stores: S.stores - m.stores,
     repute: S.repute - m.repute, worth: netWorth() - m.worth,
-    beats: beats.map(b => ({kind:b.kind, text:b.text, deltas:b.deltas}))
+    beats: beats.map(b => ({kind:b.kind, text:b.text, deltas:b.deltas, face:b.face}))
   };
   S.digestPending = true;
 }
@@ -2983,7 +2999,8 @@ function sheetDigest(){
   if(d.beats.length){
     h += '<div class="sec"><h2>What happened</h2>';
     d.beats.forEach(b => {
-      h += '<div class="entry ' + (b.kind||"") + '"><div class="txt">' + b.text + '</div>' +
+      h += '<div class="entry ' + (b.kind||"") + '">' + (b.face && PORTRAITS[b.face] ? face(b.face, "pf") : '') +
+        '<div class="txt">' + b.text + '</div>' +
         (b.deltas && b.deltas.length ? '<div class="delta">' + b.deltas.map(x=>'<span>' + esc(x) + '</span>').join("") + '</div>' : "") +
         '</div>';
     });
@@ -3022,7 +3039,7 @@ function mortality(){
   heir.you = true; heir.role = "idle"; heir.at = null;
   repute(-8);
   post("gold","<em>" + esc(you.name) + " dies at " + you.age + ".</em> " + esc(heir.name) + " takes the seal, the ledger and the debts. " +
-    "Half the buyers on the road will have to be met again for the first time.",["-8 repute"]);
+    "Half the buyers on the road will have to be met again for the first time.",["-8 repute"], heir.portrait);
 }
 
 function rollEvent(){
@@ -3105,6 +3122,122 @@ function face(p, cls){
   return '<span class="' + (cls || "glyph") + '" style="padding:0;overflow:hidden">' +
     (p && PORTRAITS[p] ? '<img src="' + PORTRAITS[p] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : "") + '</span>';
 }
+/* ---------------------------------------------------------------------
+   Faces for everyone. Sixteen portraits and a cast of dozens: sons,
+   brides, a brother, staff, the rival houses, the matches on offer. Each
+   person is cast from the portraits of their sex whose people fit them (a
+   Genoese factor gets the Frank in the hat, a Kipchak bride the furs, the
+   guard captain the helm). Nobody else ever wears the player's face, and a
+   face already at your table is passed over while another one fits.
+   Household and staff keep the face they were given, on the save, so a son
+   does not change his face when a new clerk is hired; rivals and matches
+   are cast the same way every time from their own data.
+   --------------------------------------------------------------------- */
+/* The plainly dressed faces carry many peoples, so a face that fits is
+   usually free; the marked ones (the Chinese, Indian, steppe, Frankish faces
+   and the helm) carry only their own. When the faces that fit are already at
+   the table, the next pick is still one that fits before any that does not:
+   a Bukharan bride must not come out Kashmiri because the clerk is wearing the
+   one Persian face (found in the first playtest of this, Tabriz start). */
+const FACE_KIN = {
+  m1:"persian sogdian bukharan khorasani khwarazmian armenian samarkand tabriz merchant",
+  m2:"khwarazmian urgench desert driver",
+  m3:"persian bukharan khorasani tabriz georgian armenian",
+  m4:"chinese uyghur",
+  m5:"armenian georgian jewish greek syriac persian sogdian trebizond",
+  m6:"guard",
+  m7:"kashmiri indian captain",
+  m8:"genoese venetian greek frank",
+  m9:"syrian arab jewish captain",
+  m10:"kipchak mongol steppe guide",
+  f1:"armenian georgian jewish syriac greek persian khorasani bukharan trebizond",
+  f2:"sogdian khwarazmian bukharan persian khorasani samarkand urgench",
+  f3:"kashmiri indian",
+  f4:"kipchak mongol steppe",
+  f5:"persian bukharan khorasani sogdian armenian syrian tabriz",
+  f6:"chinese uyghur"
+};
+const STAFF_F = new Set(["Roshanak","Zulfiya","Aisha","Gulnora","Jamila","Laylo","Nodira","Sitora","Zebo","Dilnoza","Feruza","Kamola"]);
+const HOME_KIN = {samarkand:"sogdian persian samarkand", trebizond:"greek armenian georgian trebizond", tabriz:"persian armenian tabriz"};
+const STAFF_KIN = {guards:"guard", captain:"captain", guide:"guide", master:"driver", factor:"merchant", dragoman:"merchant"};
+function hashStr(t){ let h = 2166136261; for(const c of String(t)){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+const yourFace = () => { const y = S && S.house && S.house.find(m => m.you); return y ? y.portrait : null; };
+function castFace(key, sex, words, avoid){
+  const [home, job] = String(words || "").toLowerCase().split("|");
+  const all = PORTRAIT_IDS.filter(id => PORTRAIT_SEX[id] === sex && id !== yourFace());
+  // the job outweighs the home town: a guard captain is the helm wherever he was born
+  const fit = id => FACE_KIN[id].split(" ").reduce((n, t) => n + (home.indexOf(t) >= 0 ? 1 : 0) + (job && job.indexOf(t) >= 0 ? 3 : 0), 0);
+  const fresh = all.filter(id => !(avoid && avoid.has(id)));
+  // a free face that fits; else any face that fits, worn twice; else any free face
+  const pool = fresh.some(id => fit(id) > 0) ? fresh.filter(id => fit(id) > 0)
+             : all.some(id => fit(id) > 0) ? all.filter(id => fit(id) > 0)
+             : (fresh.length ? fresh : all);
+  const best = Math.max.apply(null, pool.map(fit));
+  const top = pool.filter(id => fit(id) === best);
+  return top[hashStr(key) % top.length];
+}
+function sexOf(p){
+  if(p.sex) return p.sex;
+  if(p.type) return STAFF_F.has(p.name) ? "f" : "m";
+  if(p.spouseOf){ const w = S.house.find(m => m.id === p.spouseOf); return w && w.sex === "f" ? "m" : "f"; }
+  return "m";
+}
+const pronoun = p => sexOf(p) === "f" ? "She" : "He";
+function kinOf(p){
+  if(p.fromHouse){ const h = houseById(p.fromHouse); if(h) return h.culture + " " + h.seat; }
+  return (HOME_KIN[S.start] || "") + (p.type ? "|" + (STAFF_KIN[p.type] || "") : "");
+}
+const tableFaces = () => new Set(S.house.concat(S.staff).map(p => p.portrait).filter(Boolean));
+/* everyone at the table who has no face yet is given one; run on every render */
+function faceAll(){
+  const used = tableFaces();
+  S.house.concat(S.staff).forEach(p => {
+    if(p.portrait && PORTRAITS[p.portrait]) return;
+    p.portrait = castFace(p.id, sexOf(p), kinOf(p), used);
+    used.add(p.portrait);
+  });
+}
+function rivalFace(id){
+  const used = new Set();
+  let out = null;
+  (startDef().rivals || []).forEach(d => {
+    const f = castFace("rival:" + d.id, "m", d.culture + " " + d.seat, used);
+    used.add(f); if(d.id === id) out = f;
+  });
+  return out;
+}
+/* the person a match would bring: the bride for a son, the groom for a daughter */
+function matchFace(h, m){
+  const sex = m && m.sex === "f" ? "m" : "f";
+  return castFace("match:" + h.id + ":" + sex, sex, h.culture + " " + h.seat, tableFaces());
+}
+/* the next person who would answer for each post, so the hire list shows who
+   comes. Fixed for the turn, so the face you are shown is the one you hire;
+   different in every house. The road posts (guard, guide, caravan master,
+   dhow captain) are men's work in 1247, so they draw men's names. */
+const ROAD_POSTS = new Set(["guards","guide","master","captain"]);
+function candidates(){
+  const taken = new Set(S.staff.concat(S.house).map(x => x.name)), faces = tableFaces(), out = {};
+  Object.keys(STAFF).forEach(type => {
+    const names = STAFF_NAMES.filter(n => !taken.has(n) && !(ROAD_POSTS.has(type) && STAFF_F.has(n)));
+    const name = names[hashStr(S.houseName + ":" + S.start + ":" + type + ":" + S.turn + ":" + S.staff.length) % names.length] || pick(STAFF_NAMES);
+    const p = {id:"cand-" + type + "-" + S.turn, type, name};
+    p.portrait = castFace(p.id, sexOf(p), kinOf(p), faces);
+    taken.add(name); faces.add(p.portrait);
+    out[type] = p;
+  });
+  return out;
+}
+const candidateFor = type => candidates()[type];
+/* a person's sheet opens on their whole face beside their name; a wide banner
+   cropped a 192 px portrait to a strip of eyes (seen on the Doria sheet) */
+function sheetHead(p, eyebrow, name){
+  return p && PORTRAITS[p] ? '<div class="sheet-face">' + face(p) + '<div><small class="eyebrow">' + eyebrow + '</small>' +
+    '<div class="who-name">' + esc(name) + '</div></div></div>' : '';
+}
+/* someone's face, handing out faces first if they have none yet (a caravan
+   sent before the next render must still carry its leader's face) */
+const faceOf = p => { if(p && !p.portrait && S && S.house) faceAll(); return p ? (p.portrait || null) : null; };
 /* One sheet, 26 cells, 8 to a row. An id with no cell keeps its monogram, so
    nothing renders empty if the sheet and the data ever drift apart. */
 const ICON_N = {"silk": 0, "jade": 1, "lapis": 2, "spices": 3, "incense": 4, "paper": 5, "glass": 6, "tea": 7, "porcelain": 8, "horses": 9, "furs": 10, "alum": 11, "wine": 12, "cloth": 13, "dates": 14, "saffron": 15, "camel": 16, "mule": 17, "boat": 18, "serai": 19, "stall": 20, "godown": 21, "dye": 22, "counting": 23, "depot": 24, "factory": 25};
@@ -3126,6 +3259,11 @@ function renderChips(){
     '<span class="k">' + k + '</span><span class="v">' + v + '</span></div>').join("");
   $("#date").innerHTML = "<b>" + seasonOf(S.turn) + "</b>" + yearOf(S.turn) + " &middot; turn " + (S.turn+1);
   const you = S.house.find(m => m.you);
+  const hf = $("#hudFace");
+  if(hf){
+    hf.hidden = !(you && you.portrait);
+    if(you && you.portrait){ hf.dataset.v = you.id; hf.innerHTML = '<img src="' + PORTRAITS[you.portrait] + '" alt="">'; }
+  }
   $("#houseName").innerHTML = esc(S.houseName) + "<small>" +
     (S.flags.won ? "Master of the Road" : S.flags.rais ? "Ra'is of the merchants" :
      you ? esc(you.name) + ", " + you.age : esc(startDef().seat)) + "</small>";
@@ -3152,6 +3290,7 @@ function renderNav(){
 }
 let chartScroll = null;
 function render(){
+  if(S && !S.over) faceAll();
   renderChips(); renderNav();
   const old = document.getElementById("chartScroll");
   if(old) chartScroll = old.scrollLeft;
@@ -3371,7 +3510,8 @@ function viewRoads(){
     h += '<section class="sec"><h2>On the road</h2><div class="rows">';
     S.caravans.forEach(c => {
       const r = route(c.rid), left = c.due - S.turn, prog = 1 - left / r.turns;
-      h += '<div class="row static"><span class="main">' +
+      const lf = c.face || faceOf(leaderOf(c.leader));
+      h += '<div class="row static">' + (lf ? face(lf) : '') + '<span class="main">' +
         '<span class="t">' + esc(c.leaderName) + ' &rarr; ' + CITIES[r.to].name + '</span>' +
         '<span class="sub">' + c.loads + ' loads &middot; risk ' + pct(c.risk) + ' &middot; expects ' + fmt(c.expect) + 'd' +
         '<span class="bar"><i style="width:' + Math.round(prog*100) + '%"></i></span></span></span>' +
@@ -3409,8 +3549,7 @@ function viewRoads(){
       const mine = netWorth(), lead = rv.wealth > mine;
       const busy = (rv.out||[]).length;
       h += '<button class="row" data-a="rival" data-v="' + rv.id + '">' +
-        '<span class="glyph" style="border-color:' + d.colour + ';color:' + d.colour + '">' +
-        esc(d.name.replace(/^(The |)/,"").slice(0,2)) + '</span>' +
+        face(rivalFace(rv.id), "glyph").replace('style="', 'style="border-color:' + d.colour + ';border-width:2px;') +
         '<span class="main"><span class="t">' + esc(d.name) +
         (rv.heat > 0.6 ? '<span class="tag bad">watching you</span>' : '') + '</span>' +
         '<span class="sub">' + esc(d.seat) + ' &middot; ' + (busy ? busy + " on the road" : "nothing out") +
@@ -3493,7 +3632,7 @@ function viewPlan(){
   h += '<div class="panel mb"><div class="kv"><span class="k">Who leads it</span></div><div class="pillrow mt">';
   leaders().forEach(l => {
     h += '<button class="pill" data-a="leader" data-v="' + l.id + '" aria-pressed="' + (p.leader===l.id) + '">' +
-      esc(l.name) + ' <span class="num">·' + (l.skill || 3) + '</span>' + (l.type ? " ·" + STAFF[l.type].name.split(" ")[0].toLowerCase() : "") + '</button>';
+      (l.portrait ? face(l.portrait, "pf") : '') + esc(l.name) + ' <span class="num">·' + (l.skill || 3) + '</span>' + (l.type ? " ·" + STAFF[l.type].name.split(" ")[0].toLowerCase() : "") + '</button>';
   });
   if(!leaders().length) h += '<span class="hint">Nobody free. Free a Hand, or hire a caravan master.</span>';
   h += '</div><p class="hint">A leader is away for the whole trip. Higher skill, lower risk.</p></div>';
@@ -3609,7 +3748,7 @@ function viewEstate(){
   S.staff.forEach(s => {
     const d = STAFF[s.type];
     h += '<button class="row" data-a="staff" data-v="' + s.id + '">' +
-      '<span class="glyph">' + esc(s.name.slice(0,2)) + '</span>' +
+      (s.portrait ? face(s.portrait) : '<span class="glyph">' + esc(s.name.slice(0,2)) + '</span>') +
       '<span class="main"><span class="t">' + esc(s.name) +
         (s.trusted ? '<span class="tag gold">of the household</span>' : '') +
         (s.busy > S.turn ? '<span class="tag cool">on the road</span>' : '') + '</span>' +
@@ -3660,7 +3799,7 @@ function matchSection(){
       ' house' + (open.length===1?"":"s") + ' would consider it. A marriage brings a dowry, a road or a trade, and a pair of Hands.</p><div class="rows">';
     open.slice(0, 6).forEach(hh => {
       h += '<button class="row" data-a="house" data-v="' + hh.id + '">' +
-        '<span class="glyph">' + esc(hh.house.replace("The House of ","").slice(0,2)) + '</span>' +
+        face(matchFace(hh, able[0])) +
         '<span class="main"><span class="t">' + esc(hh.house.replace("The House of ","")) +
         '<span class="tag cool">' + esc(hh.culture) + '</span></span>' +
         '<span class="sub">' + esc(hh.seat) + ' &middot; ' + esc(hh.trade) + '</span></span>' +
@@ -3727,7 +3866,8 @@ function viewHouse(){
   h += '<section class="sec"><h2>The journal</h2>';
   if(!S.journal.length) h += '<p class="lede">Nothing has happened yet.</p>';
   S.journal.slice(0,30).forEach(j => {
-    h += '<div class="entry ' + (j.kind||"") + '"><div class="when">' + dateStr(j.turn) + '</div>' +
+    h += '<div class="entry ' + (j.kind||"") + '">' + (j.face && PORTRAITS[j.face] ? face(j.face, "pf") : '') +
+      '<div class="when">' + dateStr(j.turn) + '</div>' +
       '<div class="txt">' + j.text + '</div>' +
       (j.deltas && j.deltas.length ? '<div class="delta">' + j.deltas.map(d=>'<span>' + esc(d) + '</span>').join("") + '</div>' : "") +
       '</div>';
@@ -3831,9 +3971,10 @@ function paintSheet(){
 }
 function refreshSheet(){ if(sheetRender) paintSheet(); if(S) renderChips(); }
 
-function ask(title, sub, choices){
+function ask(title, sub, choices, who){
   pendingChoices = choices;
-  openSheet(() => '<h3>' + esc(title) + '</h3><p class="sub">' + esc(sub) + '</p>' +
+  openSheet(() => (who && PORTRAITS[who] ? '<div class="sheet-face">' + face(who) + '<h3 style="margin:0">' + esc(title) + '</h3></div>'
+                                          : '<h3>' + esc(title) + '</h3>') + '<p class="sub">' + esc(sub) + '</p>' +
     choices.map((c,i) => '<button class="choice" data-a="choice" data-v="' + i + '">' +
       '<span class="ct">' + esc(c.t) + '</span>' + (c.s ? '<span class="cs">' + esc(c.s) + '</span>' : "") + '</button>').join(""));
   return null;
@@ -3955,13 +4096,15 @@ function sheetLine(line){
 }
 
 function sheetHire(){
+  const cands = candidates();
   return '<h3>Hire</h3><p class="sub">A signing fee now, wages every turn after. Staff are not Hands &mdash; they do one job, and in time a few may be brought into the household. Costs one Hand.</p><div class="rows">' +
     Object.entries(STAFF).map(([k,d]) => {
       const need = Object.keys(PROPS).find(p => PROPS[p].staff === k && S.props[p] > 0 && !staffAt(p));
+      const who = cands[k];
       return '<button class="row" data-a="hirebuy" data-v="' + k + '"' + (d.hire > S.ducats || hands() < 1 ? " disabled" : "") + '>' +
-      '<span class="glyph">' + d.name.slice(0,2) + '</span>' +
+      face(who.portrait) +
       '<span class="main"><span class="t">' + d.name + (need ? '<span class="tag good">wanted</span>' : '') + '</span>' +
-      '<span class="sub">' + (d.effect || d.desc) + '</span></span>' +
+      '<span class="sub">' + esc(who.name) + ' would come. ' + (d.effect || d.desc) + '</span></span>' +
       '<span class="end gold">' + d.hire + '<small>then ' + d.wage + '/turn</small></span></button>';
     }).join("") + '</div>' +
     (hands() < 1 ? '<p class="hint">No Hands left this turn.</p>' : '') +
@@ -3972,7 +4115,8 @@ function sheetStaff(sid){
   const d = STAFF[s.type];
   const posts = Object.keys(PROPS).filter(p => PROPS[p].staff === s.type && S.props[p] > 0);
   const ready = !s.trusted && s.years >= CONFIG.promoteYears && s.loyalty >= CONFIG.promoteLoyalty;
-  return '<h3>' + esc(s.name) + '</h3><p class="sub">' + d.name + ' &mdash; ' + d.desc + '</p>' +
+  return (s.portrait ? sheetHead(s.portrait, s.trusted ? "of the household" : "in your service", s.name) : '<h3>' + esc(s.name) + '</h3>') +
+    '<p class="sub">' + d.name + ' &mdash; ' + d.desc + '</p>' +
     '<div class="panel mb"><div class="kv"><span class="k">Wage</span><span class="v neg">-' + staffWage(s) + ' each turn</span></div>' +
     '<div class="kv"><span class="k">Years in your service</span><span class="v">' + (s.years||0) + ' turns</span></div>' +
     '<div class="kv"><span class="k">Loyalty</span><span class="v ' + (s.loyalty>=60?"pos":s.loyalty<30?"neg":"") + '">' + Math.round(s.loyalty) + '</span></div>' +
@@ -3990,10 +4134,8 @@ function sheetMember(mid){
   const m = S.house.find(x => x.id === mid); if(!m) return "";
   const built = Object.keys(PROPS).filter(p => S.props[p] > 0);
   const trip = tripOf(m);
-  let h = (m.portrait ? '<div class="banner" style="aspect-ratio:2.6/1"><img src="' + PORTRAITS[m.portrait] +
-      '" alt="" style="object-position:center 22%"><span class="cap"><small>' + (m.you ? "the master of the house" : "of the household") +
-      '</small>' + esc(m.name) + '</span></div>' : '') +
-    '<h3>' + esc(m.name) + '</h3><p class="sub">' + m.age + ' years old &middot; skill ' + m.skill + ' of 5' +
+  let h = (m.portrait ? sheetHead(m.portrait, m.you ? (m.sex === "f" ? "the mistress of the house" : "the master of the house") : "of the household", m.name)
+                       : '<h3>' + esc(m.name) + '</h3>') + '<p class="sub">' + m.age + ' years old &middot; skill ' + m.skill + ' of 5' +
     (m.wed ? ' &middot; married' : '') +
     (trip ? ' &middot; on the road until turn ' + (m.busy+1) : m.busy > S.turn ? " &middot; this turn's Hand is spent" : "") + '</p>';
   if(m.you){
@@ -4210,7 +4352,8 @@ function sheetRival(id){
   if(!d || !rv) return '<h3>Gone</h3><p class="sub">That house is no longer trading.</p>' +
     '<button class="btn ghost" data-a="close">Back</button>';
   const shared = rv.routes.filter(r => routeOpen(r));
-  return '<h3>' + esc(d.name) + '</h3><p class="sub">' + esc(d.culture) + ' &middot; ' + esc(d.seat) + '</p>' +
+  return sheetHead(rivalFace(id), "a rival house", d.name) +
+    '<p class="sub">' + esc(d.culture) + ' &middot; ' + esc(d.seat) + '</p>' +
     '<p class="lede">' + esc(d.note) + '</p>' +
     '<div class="panel mb">' +
     '<div class="kv"><span class="k">What they are worth</span><span class="v ' +
