@@ -23,8 +23,9 @@ choose **Android app**, open the newest run with a green tick, scroll to
 it). Upload the APK to itch with only Android ticked. Artifacts last 30 days.
 
 **The signing key (once):** Settings > Secrets and variables > Actions > New
-repository secret, twice, with the same values as Imperator's and Knight of
-Adalia's repositories (key alias `knight`):
+repository secret, twice. Silk Road and Imperator share one key, made
+2026-11-20 (key alias `heirsofruin`); keep the keystore and password in a
+password manager, since a lost key means the app can never be updated:
 
 | Secret | Value |
 |---|---|
