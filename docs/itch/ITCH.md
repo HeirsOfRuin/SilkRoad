@@ -10,6 +10,7 @@ Every count in the copy is read out of the build, not from memory.
 |---|---|---|
 | `release/silk-road-web.zip` | The game, played on the page (index.html at the zip root, no manifest, no service worker) | `node tools/itch.js`, copied to `release/` |
 | `release/silk-road.html` | The desktop download: one file, plays offline (not Safari) | `node tools/itch.js` (`dist/Silk-Road.html`) |
+| `release/silk-road.apk` | Android download: tick Android only, display name "Silk Road (Android)" | GitHub Actions, `android.yml`, artifact `silk-road-android` (docs/android.md) |
 | `release/silk-road-itch-kit.zip` | All of the above, the page text and images, and START-HERE.txt | `node tools/make-itch-kit.mjs` |
 
 ## Upload settings

@@ -6,6 +6,38 @@ installable file.
 
 ---
 
+## The itch download: an APK GitHub builds (set up 2026-11-20)
+
+The Android download on the itch page is the itch build of the game (`npm run
+build:app`: `tools/itch.js`, then its page copied to `dist/app/`) inside a
+Capacitor WebView, the same way Imperator's and the Adalia apps are made. It
+plays offline, apart from the Google Fonts typefaces, which fall back to system
+fonts; the app keeps its saves on the phone. GitHub builds it
+(`.github/workflows/android.yml`) on every push that changes the game.
+
+**Getting the APK:** on github.com, open the repository's **Actions** tab,
+choose **Android app**, open the newest run with a green tick, scroll to
+**Artifacts** and download **silk-road-android**. Inside the zip:
+`silk-road.apk` when the signing secrets are set (publish this one), or
+`silk-road-TEST.apk` when they are not (try it on your own phone; never publish
+it). Upload the APK to itch with only Android ticked. Artifacts last 30 days.
+
+**The signing key (once):** Settings > Secrets and variables > Actions > New
+repository secret, twice, with the same values as Imperator's and Knight of
+Adalia's repositories (key alias `knight`):
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | the keystore file, base64-encoded |
+| `ANDROID_KEYSTORE_PASSWORD` | its password |
+
+The app id `io.github.heirsofruin.silkroad` is permanent once an APK is
+published. The icons and splash screens are drawn from `icons/` by
+`node tools/android-icons.mjs`. Route 2 below (a hand-built APK) is not needed
+for itch any more.
+
+---
+
 ## 1. Install it as a web app (done — you just need to flip one switch)
 
 The game already ships everything a phone needs to install it: a web manifest,

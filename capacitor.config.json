@@ -1,0 +1,6 @@
+{
+  "appId": "io.github.heirsofruin.silkroad",
+  "appName": "Silk Road",
+  "webDir": "dist/app",
+  "android": { "backgroundColor": "#0F1621" }
+}

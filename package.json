@@ -1,0 +1,13 @@
+{
+  "name": "silk-road",
+  "private": true,
+  "scripts": {
+    "build:itch": "node tools/itch.js",
+    "build:app": "node tools/itch.js && node -e \"const f=require('fs');f.rmSync('dist/app',{recursive:true,force:true});f.mkdirSync('dist/app',{recursive:true});f.copyFileSync('dist/Silk-Road.html','dist/app/index.html')\""
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2"
+  }
+}
